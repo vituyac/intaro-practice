@@ -4,22 +4,27 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./php/db/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   php:
-    build: .
+    build: ./php
     container_name: php_app
-    volumes:
-      - .:/var/www/html
     depends_on:
       - db
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php
     ports:
       - "8000:80"
 
