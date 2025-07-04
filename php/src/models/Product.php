@@ -3,73 +3,97 @@
 namespace App\models;
 
 use App\core\Database;
+use PDO;
 
 class Product {
-    private $id;
-    private $name;
-    private $brand;
-    private $model;
-    private $description;
-    private $category_id;
-    private $db;
+    private PDO $pdo;
 
-    public function __construct($id = null, $name = null, $brand = null, $model = null, $description = null, $category_id = null) {
-        $this->id = $id;
-        $this->name = $name;
-        $this->brand = $brand;
-        $this->model = $model;
-        $this->description = $description;
-        $this->category_id = $category_id;
-        $this->db = Database::connect();
+    public function __construct() {
+        $this->pdo = Database::connect();
     }
 
-    // Getters
-    public function getId() {
-        return $this->id;
+    public function getAll(): array {
+        $stmt = $this->pdo->query("SELECT * FROM product ORDER BY id");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getName() {
-        return $this->name;
+    public function getById(int $id): ?array {
+        $stmt = $this->pdo->prepare("SELECT * FROM product WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
     }
 
-    public function getBrand() {
-        return $this->brand;
+    public function getByBrand(string $brand): array {
+        $stmt = $this->pdo->prepare("SELECT * FROM product WHERE brand = :brand ORDER BY model");
+        $stmt->execute(['brand' => $brand]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getModel() {
-        return $this->model;
+    public function getByCategory(int $categoryId): array {
+        $stmt = $this->pdo->prepare("SELECT * FROM product WHERE category_id = :category_id ORDER BY brand, model");
+        $stmt->execute(['category_id' => $categoryId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getDescription() {
-        return $this->description;
+    public function getByBrandAndModel(string $brand, string $model): ?array {
+        $stmt = $this->pdo->prepare("SELECT * FROM product WHERE brand = :brand AND model = :model");
+        $stmt->execute([
+            'brand' => $brand,
+            'model' => $model
+        ]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
     }
 
-    public function getCategoryId() {
-        return $this->category_id;
+    public function searchByName(string $searchTerm): array {
+        $stmt = $this->pdo->prepare("SELECT * FROM product WHERE name ILIKE :search_term ORDER BY brand, model");
+        $stmt->execute(['search_term' => "%{$searchTerm}%"]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Setters
-    public function setId($id) {
-        $this->id = $id;
+    public function addProduct(string $name, string $brand, string $model, ?string $description, int $categoryId): int {
+        $stmt = $this->pdo->prepare("INSERT INTO product (name, brand, model, description, category_id) VALUES (:name, :brand, :model, :description, :category_id) RETURNING id");
+        $stmt->execute([
+            'name' => htmlspecialchars($name),
+            'brand' => htmlspecialchars($brand),
+            'model' => htmlspecialchars($model),
+            'description' => $description ? htmlspecialchars($description) : null,
+            'category_id' => $categoryId
+        ]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['id'];
     }
 
-    public function setName($name) {
-        $this->name = $name;
+    public function updateProduct(int $id, string $name, string $brand, string $model, ?string $description, int $categoryId): bool {
+        $stmt = $this->pdo->prepare("UPDATE product SET name = :name, brand = :brand, model = :model, description = :description, category_id = :category_id WHERE id = :id");
+        return $stmt->execute([
+            'name' => htmlspecialchars($name),
+            'brand' => htmlspecialchars($brand),
+            'model' => htmlspecialchars($model),
+            'description' => $description ? htmlspecialchars($description) : null,
+            'category_id' => $categoryId,
+            'id' => $id
+        ]);
     }
 
-    public function setBrand($brand) {
-        $this->brand = $brand;
+    public function deleteProduct(int $id): bool {
+        $stmt = $this->pdo->prepare("DELETE FROM product WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
     }
 
-    public function setModel($model) {
-        $this->model = $model;
+    public function getProductsWithCategory(): array {
+        $stmt = $this->pdo->query("
+            SELECT p.*, s.title as category_title 
+            FROM product p 
+            LEFT JOIN section s ON p.category_id = s.id 
+            ORDER BY p.brand, p.model
+        ");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function setDescription($description) {
-        $this->description = $description;
-    }
-
-    public function setCategoryId($category_id) {
-        $this->category_id = $category_id;
+    public function getBrands(): array {
+        $stmt = $this->pdo->query("SELECT DISTINCT brand FROM product ORDER BY brand");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 } 
