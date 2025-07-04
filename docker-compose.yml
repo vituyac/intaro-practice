@@ -18,10 +18,14 @@ services:
     container_name: php_app
     depends_on:
       - db
+    volumes:
+      - ./php:/var/www/html
+      - vendor:/var/www/html/vendor
 
   nginx:
     image: nginx:latest
     volumes:
+      - ./php:/var/www/html
       - ./nginx/conf.d:/etc/nginx/conf.d
     depends_on:
       - php
@@ -37,3 +41,4 @@ services:
 
 volumes:
   db_data:
+  vendor:
