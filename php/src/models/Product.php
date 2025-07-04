@@ -52,19 +52,6 @@ class Product {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function addProduct(string $name, string $brand, string $model, ?string $description, int $categoryId): int {
-        $stmt = $this->pdo->prepare("INSERT INTO product (name, brand, model, description, category_id) VALUES (:name, :brand, :model, :description, :category_id) RETURNING id");
-        $stmt->execute([
-            'name' => htmlspecialchars($name),
-            'brand' => htmlspecialchars($brand),
-            'model' => htmlspecialchars($model),
-            'description' => $description ? htmlspecialchars($description) : null,
-            'category_id' => $categoryId
-        ]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result['id'];
-    }
-
     public function getBrands(): array {
         $stmt = $this->pdo->query("SELECT DISTINCT brand FROM product ORDER BY brand");
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
