@@ -65,33 +65,6 @@ class Product {
         return $result['id'];
     }
 
-    public function updateProduct(int $id, string $name, string $brand, string $model, ?string $description, int $categoryId): bool {
-        $stmt = $this->pdo->prepare("UPDATE product SET name = :name, brand = :brand, model = :model, description = :description, category_id = :category_id WHERE id = :id");
-        return $stmt->execute([
-            'name' => htmlspecialchars($name),
-            'brand' => htmlspecialchars($brand),
-            'model' => htmlspecialchars($model),
-            'description' => $description ? htmlspecialchars($description) : null,
-            'category_id' => $categoryId,
-            'id' => $id
-        ]);
-    }
-
-    public function deleteProduct(int $id): bool {
-        $stmt = $this->pdo->prepare("DELETE FROM product WHERE id = :id");
-        return $stmt->execute(['id' => $id]);
-    }
-
-    public function getProductsWithCategory(): array {
-        $stmt = $this->pdo->query("
-            SELECT p.*, s.title as category_title 
-            FROM product p 
-            LEFT JOIN section s ON p.category_id = s.id 
-            ORDER BY p.brand, p.model
-        ");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
     public function getBrands(): array {
         $stmt = $this->pdo->query("SELECT DISTINCT brand FROM product ORDER BY brand");
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
