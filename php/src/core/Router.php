@@ -15,7 +15,8 @@ class Router {
     public function resolve(): void {
         $method = $_SERVER['REQUEST_METHOD'];
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        
+        $path = preg_replace('#^/index\.php#', '', $path) ?: '/';
+
         if (isset($this->routes[$method][$path])) {
             call_user_func($this->routes[$method][$path]);
         } else {
