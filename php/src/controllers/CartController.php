@@ -176,14 +176,46 @@
             }
 
             try {
-                Cart::removeCartItem($id);
+                if (Cart::removeCartItem($id)) {
+                    http_response_code(200);
+                    echo json_encode(["message" => "Successfully removed item"]);
+                    return;
+                } else {
+                    http_response_code(400);
+                    echo json_encode(["error" => "Error acquired when removing item '$id'"]);
+                    return;
+                }
             } catch (PDOException $e){
                 http_response_code(500);
                 echo json_encode(["error" => $e->getMessage()]);
                 return;
             }
+        }
 
-            http_response_code(200);
+        function clearCart(){
+            header('Content-type: application/json');
+            if (empty($_SESSION["user_id"])){
+                http_response_code(403);
+                echo json_encode(["error" => "Unathorized"]);
+                return;
+            }
+
+            try {
+                if (Cart::clearCart($_SESSION["user_id"])) {
+                    http_response_code(200);
+                    echo json_encode(["message" => "Successfully cleared cart"]);
+                    return;
+                } else {
+                    http_response_code(400);
+                    echo json_encode(["error" => "Error acquired when clearing cart"]);
+                    return;
+                };
+                
+            } catch (PDOException $e){
+                http_response_code(500);
+                echo json_encode(["error" => $e->getMessage()]);
+                return;
+            }
         }
     }
 ?>
