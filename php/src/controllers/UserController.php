@@ -29,7 +29,7 @@ class UserController {
             $password = $input['password'];
             $firstName = $input['firstName'];
             $lastName = $input['lastName'];
-            $middleName = $input['middleName'] ?? null;
+            $patronymic = $input['patronymic'] ?? null;
 
             if ($this->userModel->getUserByEmail($email)) {
                 http_response_code(409);
@@ -40,7 +40,7 @@ class UserController {
             $userId = $this->userModel->createUser($email, $password);
 
             if ($userId) {
-                $srm_id = $this->srm->registerUser($userId, $email, $firstName, $lastName, $middleName);
+                $srm_id = $this->srm->registerUser($userId, $email, $firstName, $lastName, $patronymic);
                 if ($srm_id) {
                     $this->userModel->setExternalID($userId, $srm_id);
                     http_response_code(200);
