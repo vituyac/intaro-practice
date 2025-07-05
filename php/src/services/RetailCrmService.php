@@ -55,7 +55,7 @@
             string $email,
             string $firstName,
             string $lastName,
-            ?string $middleName = null
+            ?string $patronymic = null
         ): ?int {
             $config = parse_ini_file(__DIR__ . '/../../.env');
 
@@ -74,8 +74,8 @@
                 ]
             ];
 
-            if (!empty($middleName)) {
-                $customer['patronymic'] = $middleName;
+            if (!empty($patronymic)) {
+                $customer['patronymic'] = $patronymic;
             }
 
             $payload = [
