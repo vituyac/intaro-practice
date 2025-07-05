@@ -81,5 +81,4 @@ class Offer {
         $stmt->execute(['section_id' => $sectionId]);
         return (int) $stmt->fetchColumn();
     }
-
 } 
