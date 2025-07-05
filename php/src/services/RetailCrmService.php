@@ -50,6 +50,70 @@
             print_r($data);
         }
 
+        public static function createRetailCrmOrder(array $data): array {
+            $config = parse_ini_file(__DIR__ . '/../../.env');
+
+            $urlCrm = $config['RETAILCRM_API_URL'];
+            $apiKey = $config['RETAILCRM_API_KEY'];
+            $api = '/api/v5/orders/create';
+
+            $endpoint = "{$urlCrm}" . $api . "?apiKey={$apiKey}";
+
+            $curl = curl_init();
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $endpoint,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+                CURLOPT_POSTFIELDS => http_build_query([
+                    'site' => $data['site'],
+                    'order' => json_encode($data['order'])
+                ])
+            ]);
+
+            $response = curl_exec($curl);
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $error = curl_error($curl);
+            
+            curl_close($curl);
+
+            if ($error) {
+                return [
+                    'success' => false,
+                    'message' => 'Ошибка соединения с RetailCRM: ' . PHP_EOL . $error
+                ];
+            } else {
+                $result = json_decode($response, true);
+                if ($httpCode === 201 && isset($result['success']) && $result['success'] === true) {
+                    $order = $result['order'];
+                    $items = [];
+
+                    foreach ($order['items'] as $item) {
+                        $items[] = [
+                            'id' => $item['id'],
+                            'name' => $item['offer']['name'],
+                            'quantity' => $item['quantity'],
+                            'price' => $item['initialPrice'],
+                            'discount' => $item['discountTotal']
+                        ];
+                    }
+
+                    return [
+                        'success' => true,
+                        'orderId' => $order['id'],
+                        'totalSumm' => $order['totalSumm'],
+                        'currency' => $order['currency'],
+                        'items' => $items
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'details' => $result
+                    ];
+                }
+            }
+        }
     }
 
 ?>
