@@ -50,7 +50,13 @@
             print_r($data);
         }
 
-        public function registerUser(int $externalId, string $email): ?int {
+        public function registerUser(
+            int $externalId,
+            string $email,
+            string $firstName,
+            string $lastName,
+            ?string $middleName = null
+        ): ?int {
             $config = parse_ini_file(__DIR__ . '/../../.env');
 
             $urlCrm = $config['RETAILCRM_API_URL'];
@@ -58,14 +64,22 @@
 
             $endpoint = "{$urlCrm}/api/v5/customers/create?apiKey={$apiKey}";
 
+            $customer = [
+                'externalId' => (string)$externalId,
+                'email' => $email,
+                'firstName' => $firstName,
+                'lastName' => $lastName,
+                'contragent' => [
+                    'contragentType' => 'individual'
+                ]
+            ];
+
+            if (!empty($middleName)) {
+                $customer['patronymic'] = $middleName;
+            }
+
             $payload = [
-                'customer' => json_encode([
-                    'externalId' => (string)$externalId,
-                    'email' => $email,
-                    'contragent' => [
-                        'contragentType' => 'individual'
-                    ]
-                ], JSON_UNESCAPED_UNICODE),
+                'customer' => json_encode($customer, JSON_UNESCAPED_UNICODE),
                 'site' => 'magazin-tekhniki'
             ];
 
@@ -83,11 +97,6 @@
             $error = curl_error($curl);
             curl_close($curl);
 
-            if ($error) {
-                error_log("RetailCRM cURL error: " . $error);
-                return null;
-            }
-
             $data = json_decode($response, true);
 
             if (isset($data['success']) && $data['success'] === true && isset($data['id'])) {
@@ -97,5 +106,4 @@
             print_r($data);
         }
     }
-
 ?>
