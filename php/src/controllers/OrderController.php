@@ -3,7 +3,7 @@
     namespace App\controllers;
 
     use App\services\RetailCrmService;
-    
+
     use App\utils\PaternsFormOrder;
     use App\utils\ValidationFormOrder;
 
@@ -32,8 +32,10 @@
             if (!ValidationFormOrder::validate($firstname, $paterns['firstname']) || $firstname === '') {
                 $this->errors[] = 'Неверный формат имени';
             }
-            if (!ValidationFormOrder::validate($lastname, $paterns['lastname'])) {
-                $this->errors[] = 'Неверный формат отчества';
+            if ($lastname !== '') {
+                if (!ValidationFormOrder::validate($lastname, $paterns['lastname'])) {
+                    $this->errors[] = 'Неверный формат отчества';
+                }
             }
             if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $email === '') {
                 $this->errors[] = 'Неверный формат email';
@@ -54,10 +56,58 @@
             if (!empty($this->errors)) {
                 http_response_code(422);
                 echo json_encode([
-                    'status' => 'error',
+                    'success' => false,
                     'message' => $this->errors
                 ]);
                 exit;
+            }
+
+            $data = [
+                'site' => 'magazin-tekhniki',
+                'order' => [
+                    'firstName' => $firstname,
+                    'lastName' => $surname,
+                    'patronymic' => $lastname,
+                    'phone' => $phone,
+                    'email' => $email,
+                    'orderMethod' => 'shopping-cart',
+                    'orderType' => 'eshop-individual',
+                    'delivery' => [
+                        'code' => $deliveryType,
+                        'address' => [
+                            'text' => $address
+                        ]
+                    ],
+                    'payments' => [
+                        [
+                            'type' => $paymentType,
+                            'status' => 'invoice'
+                        ]
+                    ],
+                    'items' => [
+                        [
+                            'productName' => 'Товар №1',
+                            'initialPrice' => 6000,
+                            'quantity' => 5,
+                            'offer' => [
+                                'externalId' => '11'
+                            ]
+                        ]
+                    ],
+                    'customer' => [
+                        'externalId' => $userId
+                    ]
+                ]
+            ];
+
+            $response = RetailCrmService::createRetailCrmOrder($data);
+
+            if ($response['success']) {
+                http_response_code(201);
+                echo json_encode($response);
+            } else {
+                http_response_code(400);
+                echo json_encode($response);
             }
 
         }
