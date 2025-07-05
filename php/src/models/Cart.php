@@ -114,4 +114,15 @@ class Cart {
         $query = $pdo->prepare($sql);
         return $query->execute($params);
     }
+
+    /** 
+     * @param int $userId Пользователь, для которого трогаем корзину
+     * @return bool Результат операции
+     **/
+    static function clearCart(int $user_id): bool{
+        $sql = "DELETE FROM cart WHERE user_id = ?";
+        $param = [$user_id];
+        $pdo = Database::connect();
+        return $pdo->prepare($sql)->execute($param);
+    }
 }

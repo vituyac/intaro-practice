@@ -34,6 +34,7 @@ $router->get('/api/cart', [$cart, 'getCartItem']);
 $router->post('/api/cart', [$cart, 'addCartItem']);
 $router->put('/api/cart', [$cart, 'changeCartItem']);
 $router->delete('/api/cart', [$cart, 'removeCartItem']);
+    $router->delete('/api/clear-cart', [$cart, 'clearCart']);
 
 $router->get('/mock/login', [$mocker, 'mockLogin']);
 $router->get('/mock/check-login', [$mocker, 'checkUser']);
