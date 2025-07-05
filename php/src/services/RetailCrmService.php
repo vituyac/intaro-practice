@@ -50,6 +50,52 @@
             print_r($data);
         }
 
+        public function registerUser(int $externalId, string $email): ?int {
+            $config = parse_ini_file(__DIR__ . '/../../.env');
+
+            $urlCrm = $config['RETAILCRM_API_URL'];
+            $apiKey = $config['RETAILCRM_API_KEY'];
+
+            $endpoint = "{$urlCrm}/api/v5/customers/create?apiKey={$apiKey}";
+
+            $payload = [
+                'customer' => json_encode([
+                    'externalId' => (string)$externalId,
+                    'email' => $email,
+                    'contragent' => [
+                        'contragentType' => 'individual'
+                    ]
+                ], JSON_UNESCAPED_UNICODE),
+                'site' => 'magazin-tekhniki'
+            ];
+
+            $curl = curl_init();
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $endpoint,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+                CURLOPT_POSTFIELDS => http_build_query($payload)
+            ]);
+
+            $response = curl_exec($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if ($error) {
+                error_log("RetailCRM cURL error: " . $error);
+                return null;
+            }
+
+            $data = json_decode($response, true);
+
+            if (isset($data['success']) && $data['success'] === true && isset($data['id'])) {
+                return (int)$data['id'];
+            }
+
+            print_r($data);
+        }
     }
 
 ?>
