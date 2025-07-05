@@ -3,6 +3,7 @@ namespace App\controllers;
 
 use App\models\User;
 use App\services\RetailCrmService;
+use App\utils\RegisterFormValidator;
 
 class UserController {
     private User $userModel;
@@ -17,15 +18,18 @@ class UserController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input = json_decode(file_get_contents('php://input'), true);
 
-            $email = isset($input['email']) ? trim($input['email']) : null;
-            $password = $input['password'] ?? null;
-            $confirm = $input['confirm'] ?? null;
-
-            if ($password !== $confirm) {
+            $errors = RegisterFormValidator::validate($input);
+            if ($errors) {
                 http_response_code(400);
-                echo json_encode(['error' => 'Пароли не совпадают']);
+                echo json_encode(['details' => $errors]);
                 exit();
             }
+
+            $email = trim($input['email']);
+            $password = $input['password'];
+            $firstName = $input['firstName'];
+            $lastName = $input['lastName'];
+            $patronymic = $input['patronymic'] ?? null;
 
             if ($this->userModel->getUserByEmail($email)) {
                 http_response_code(409);
@@ -36,7 +40,7 @@ class UserController {
             $userId = $this->userModel->createUser($email, $password);
 
             if ($userId) {
-                $srm_id = $this->srm->registerUser($userId, $email);
+                $srm_id = $this->srm->registerUser($userId, $email, $firstName, $lastName, $patronymic);
                 if ($srm_id) {
                     $this->userModel->setExternalID($userId, $srm_id);
                     http_response_code(200);

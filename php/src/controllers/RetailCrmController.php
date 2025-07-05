@@ -8,12 +8,14 @@
 
         public function deliveryTypes(): void {
             $retailCrmService = new RetailCrmService();
-            $retailCrmService->deliveryTypes();
+            $data = $retailCrmService->deliveryTypes();
+            echo json_encode($data);
         }
 
         public function paymentTypes(): void {
             $retailCrmService = new RetailCrmService();
-            $retailCrmService->paymentTypes();
+            $data = $retailCrmService->paymentTypes();
+            echo json_encode($data);
         }
     }
 
