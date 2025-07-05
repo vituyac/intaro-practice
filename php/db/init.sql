@@ -1,13 +1,11 @@
--- Каталог
-CREATE TABLE sections (
+CREATE TABLE IF NOT EXISTS sections (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL UNIQUE,
     parent_id INTEGER,
     FOREIGN KEY (parent_id) REFERENCES sections(id) ON DELETE SET NULL
 );
 
--- Товары
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     brand VARCHAR(255) NOT NULL,
@@ -17,8 +15,7 @@ CREATE TABLE products (
     UNIQUE (brand, model)
 );
 
--- Торговые предложения
-CREATE TABLE offers (
+CREATE TABLE IF NOT EXISTS offers (
     id SERIAL PRIMARY KEY,
     product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -28,4 +25,12 @@ CREATE TABLE offers (
     discount INTEGER DEFAULT 0,
     is_popular BOOLEAN DEFAULT FALSE,
     is_on_sale BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    external_id INTEGER,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
 );
