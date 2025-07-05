@@ -1,26 +1,26 @@
 -- Каталог
-CREATE TABLE section (
+CREATE TABLE sections (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL UNIQUE,
     parent_id INTEGER,
-    FOREIGN KEY (parent_id) REFERENCES Section(id) ON DELETE SET NULL
+    FOREIGN KEY (parent_id) REFERENCES sections(id) ON DELETE SET NULL
 );
 
 -- Товары
-CREATE TABLE product (
+CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     brand VARCHAR(255) NOT NULL,
     model VARCHAR(255) NOT NULL,
     description TEXT,
-    category_id INTEGER REFERENCES Section(id) NOT NULL,
+    category_id INTEGER REFERENCES sections(id) NOT NULL,
     UNIQUE (brand, model)
 );
 
 -- Торговые предложения
-CREATE TABLE offer (
+CREATE TABLE offers (
     id SERIAL PRIMARY KEY,
-    product_id INTEGER NOT NULL REFERENCES product(id) ON DELETE CASCADE,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     image TEXT,
     price DECIMAL(10, 2) NOT NULL,
