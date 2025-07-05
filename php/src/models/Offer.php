@@ -57,4 +57,29 @@ class Offer {
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
+    public function getBySection(int $sectionId, int $limit = 20, int $offset = 0): array {
+        $stmt = $this->pdo->prepare("
+            SELECT o.* FROM offers o 
+            JOIN products p ON o.product_id = p.id 
+            WHERE p.category_id = :section_id 
+            ORDER BY o.price 
+            LIMIT :limit OFFSET :offset
+        ");
+        $stmt->bindValue(':section_id', $sectionId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getCountBySection(int $sectionId): int {
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*) FROM offers o 
+            JOIN products p ON o.product_id = p.id 
+            WHERE p.category_id = :section_id
+        ");
+        $stmt->execute(['section_id' => $sectionId]);
+        return (int) $stmt->fetchColumn();
+    }
+
 } 
