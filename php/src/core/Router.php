@@ -12,6 +12,13 @@ class Router {
         $this->routes['POST'][$route] = $callback;
     }
 
+    public function put(string $route, callable $callback): void {
+        $this->routes['PUT'][$route] = $callback;
+    }
+
+    public function delete(string $route, callable $callback): void {
+        $this->routes['DELETE'][$route] = $callback;
+    }
     public function resolve(): void {
         $method = $_SERVER['REQUEST_METHOD'];
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
