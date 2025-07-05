@@ -35,19 +35,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-
--- Пользователь
-CREATE TABLE user (
-    id SERIAL PRIMARY KEY,
-    external_id BIGINT DEFAULT 0,
-    email VARCHAR(128) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL
-);
-
 -- Корзина
 CREATE TABLE cart (
     id SERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     -- Сохраним возможность уведомить пользователя об удалении товара 
     offer_id BIGINT NOT NULL REFERENCES offer(id) ON DELETE SET NULL, 
     quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
