@@ -40,7 +40,7 @@ CREATE TABLE cart (
     id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     -- Сохраним возможность уведомить пользователя об удалении товара 
-    offer_id BIGINT NOT NULL REFERENCES offer(id) ON DELETE SET NULL, 
+    offer_id BIGINT NOT NULL REFERENCES offers(id) ON DELETE SET NULL, 
     quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
     price DECIMAL(10, 2) NOT NULL
 );

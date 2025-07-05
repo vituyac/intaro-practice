@@ -9,88 +9,88 @@ class Cart {
     /**
      * @param int $userId
      * @return [{
-     *  itemId, productName, offerId, quantity, offerPrice, 
+     *  item_id, product_name, offer_id, quantity, price, 
      * }]
      */
     static function getUserCartItemList(
         int $userId
     ): array {
-        $sql = "SELECT c.id as itemId, p.name as productName, o.id as offerId, c.quantity as quantity, c.price as offerPrice FROM cart c LEFT JOIN offer o on o.id = c.offer_id LEFT JOIN product p on p.id = o.product_id WHERE c.user_id = ?";
+        $sql = "SELECT c.id as item_id, o.title as product_name, o.id as offer_id, c.quantity as quantity, c.price as price FROM cart c LEFT JOIN offers o on o.id = c.offer_id WHERE c.user_id = ?";
         $param = [$userId];
         $pdo = Database::connect();
         $query = $pdo->prepare($sql);
         $query->execute($param); 
-        return $query->fetchAll();
+        return $query->fetchAll() ?: [];
     }
 
 
     /**
-     * @param int $itemId
+     * @param int $item_id
      * @return {
-     *  itemId, productName, offerId, quantity, offerPrice,
+     *  item_id, product_name, offer_id, quantity, price,
      * }
      */
     static function getCartItem(
-        int $itemId,
+        int $item_id,
     ): array {
-        $sql = "SELECT c.id as itemId, p.name as productName, o.id as offerId, c.quantity as quantity, c.price as offerPrice FROM cart c LEFT JOIN offer o on o.id = c.offer_id LEFT JOIN product p on p.id = o.product_id WHERE c.id = ?";
-        $param = [$itemId];
+        $sql = "SELECT c.id as item_id, o.title as product_name, o.id as offer_id, c.quantity as quantity, c.price as price FROM cart c LEFT JOIN offers o on o.id = c.offer_id WHERE c.id = ?";
+        $param = [$item_id];
         $pdo = Database::connect();
         $query = $pdo->prepare($sql);
         $query->execute($param);
-        return $query->fetch();
+        return $query->fetch() ?: [];
     }
 
     /**
      * @param int $userId Пользователь, для которого трогаем корзину
-     * @param int $offerId Товар, добавляемый в корзину
+     * @param int $offer_id Товар, добавляемый в корзину
      * @param int $quantity Количество товара (1)
      * @param float $price Стоимость товаров
      * @return bool Результат операции
      */
     static function addCartItem(
         int $userId,
-        int $offerId,
+        int $offer_id,
         int $quantity = 1,
         ?float $price = null
     ): bool {
         $pdo = Database::connect();
 
         if (empty($price)){
-            $price_sql = "SELECT price FROM offer WHERE id = ?";
-            $price_param = [$offerId];
+            $price_sql = "SELECT price FROM offers WHERE id = ?";
+            $price_param = [$offer_id];
             $price_query = $pdo->prepare($price_sql);
             $price_query->execute($price_param);
             $price = $price_query->fetch()["price"];
         }
 
         $sql = "INSERT INTO cart (user_id, offer_id, quantity, price) VALUES (?, ?, ?, ?)";
-        $params = [$userId, $offerId, $quantity, $price];
+        $params = [$userId, $offer_id, $quantity, $price];
         return $pdo->prepare($sql )->execute($params);
     }
 
     /**
-     * @param int $itemId Id Позиции в корзине
+     * @param int $item_id Id Позиции в корзине
      * @return bool Результат операции
      */
     static function removeCartItem(
-        int $itemId
+        int $item_id
     ): bool{
         $pdo = Database::connect();
 
         $sql = "DELETE FROM cart WHERE id = ?";
-        $param = [$itemId];
+        $param = [$item_id];
         return $pdo->prepare($sql)->execute($param);
     }
 
     /**
-     * @param int $itemId
+     * @param int $item_id
      * @param ?int $quantity
      * @param ?float $price
      * @return bool Успех операции
      */
     static function changeItem(
-        int $itemId,
+        int $item_id,
         ?int $quantity,
         ?float $price
     ): bool{
@@ -107,7 +107,7 @@ class Cart {
             $fields[] = "price=?";
             $params[] = $price;
         }
-        $params[]=$itemId;
+        $params[]=$item_id;
         $sql .= implode(", ", $fields) . " WHERE id=?";
 
         $pdo = Database::connect();

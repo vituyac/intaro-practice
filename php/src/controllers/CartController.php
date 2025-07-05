@@ -14,94 +14,100 @@
          * 
          * @return [
          * {
-         *  itemId, 
-         *  productName, 
-         *  offerId, 
+         *  item_id, 
+         *  product_name, 
+         *  offer_id, 
          *  quantity, 
-         *  offerPrice, 
+         *  price, 
          * },...]
          */
         function getCartItem(){
             header('Content-type: application/json');
 
-            $id = (int)$_GET["id"] ?? null;
+            $id = (int)($_GET["id"] ?? null);
 
-            // TODO: Change User id key 'userId' to actual key
-            if (empty($_SESSION["userId"])){
+            if (empty($_SESSION["user_id"])){
                 http_response_code(403);
                 return;
             }
 
             try {
                 if (empty($id)){
-                    $data = Cart::getUserCartItemList($_SESSION["userId"]);
+                    $data = Cart::getUserCartItemList($_SESSION["user_id"]);
                 } else {
-                    $data = json_encode(Cart::getCartItem($id));
+                    $data = Cart::getCartItem($id);
                 }
                 http_response_code(200);
-                return json_encode($data);
+                echo json_encode($data);
+                return;
             } catch (PDOException $e){
                 http_response_code(500);
-                return json_encode(["error" => $e->getMessage()]);
+                echo json_encode(["error" => $e->getMessage()]);
+                return;
             }
         }
 
         /**
          * POST:
-         * offerId - лот продажи в магазине (или что это я хз)
+         * offer_id - лот продажи в магазине (или что это я хз)
          * ?quantity - количество единиц товара (по умолчанию 1)
-         * ?offerPrice - стоимость товара (по умолчанию берется стоимость соотв. лота)
+         * ?price - стоимость товара (по умолчанию берется стоимость соотв. лота)
          */
         function addCartItem(){
             header('Content-type: application/json');
+            // МММ php просто так JSON в POST не парсит
+            $_POST = json_decode(file_get_contents("php://input"), true);
 
-            // TODO: Change User id key 'userId' to actual key
-            if (empty($_SESSION["userId"])){
+            if (empty($_SESSION["user_id"])){
                 http_response_code(403);
-                return json_encode(["error" => "Unathorized"]);
+                echo json_encode(["error" => "Unathorized"]);
+                return;
             }
-
-            $offerId = $_POST["offerId"] ?? null;
-            if (empty($offerId) || $offerId < 0){
+            $offer_id = $_POST["offer_id"] ?? null;
+            if (empty($offer_id) || $offer_id < 0){
                 http_response_code(400);
-                return json_encode(["error" => "'offerId' not provided or invalid"]);
+                echo json_encode(["error" => "'offer_id' not provided or invalid"]);
+                return;
             }
 
             $quantity = $_POST["quantity"] ?? 1;
-            $offerPrice = $_POST["offerPrice"] ?? null;
+            $price = $_POST["price"] ?? null;
             try {
-                // TODO: Change User id key 'userId' to actual key
-                $res = Cart::addCartItem($_SESSION["userId"], $offerId, $quantity, $offerPrice);
+                $res = Cart::addCartItem($_SESSION["user_id"], $offer_id, $quantity, $price);
                 if ($res){
                     http_response_code(200);
-                    return json_encode(["message" => "Successfully created new cart item"]);
+                    echo json_encode(["message" => "Successfully created new cart item"]);
+                    return;
                 } else {
                     http_response_code(400);
-                    return json_encode([
+                    echo json_encode([
                         "error"=> "Error when creating new cart item",
                         "data" => [
-                            "offerId" => $offerId,
-                            "offerPrice" => $offerPrice,
+                            "offer_id" => $offer_id,
+                            "price" => $price,
                             "quantity" => $quantity
                         ]
                     ]);
+                    return;
                 }
             } catch (PDOException $e){
                 http_response_code(500);
-                return json_encode(["error" => $e->getMessage()]);
+                echo json_encode(["error" => $e->getMessage()]);
+                return;
             }
         }
 
         /**
          * GET:
-         * id - id конкретного предмета в списке (itemId)
+         * id - id конкретного предмета в списке (item_id)
          * POST:
-         * offerId - лот продажи в магазине (или что это я хз)
          * ?quantity - количество единиц товара
-         * ?offerPrice - стоимость товара
+         * ?price - стоимость товара
          */
         function changeCartItem() {
             header('Content-type: application/json');
+            // МММ php просто так JSON в POST не парсит
+            $_POST = json_decode(file_get_contents("php://input"), true);
 
             $id = $_GET["id"] ?? null;
             if (empty($id) || (int)$id < 0){
@@ -110,48 +116,54 @@
                 return;
             }
 
-            $offerPrice = $_POST["offerPrice"] ?? null;
+            $price = $_POST["price"] ?? null;
             $quantity = $_POST["quantity"] ?? null;
-            if (empty($offerPrice) && empty($quantity)){
+            if (empty($price) && empty($quantity)){
                 http_response_code(200);
-                return json_encode(["message" => "Successfull update (done nothing)"]);
+                echo json_encode(["message" => "Successfull update (done nothing)"]);
+                return;
             }
 
-            if (!empty($offerPrice) && $offerPrice < 0){
+            if (!empty($price) && $price < 0){
                 http_response_code(400);
-                echo json_encode(["error" => "Malformed data: 'offerPrice'"]);
+                echo json_encode(["error" => "Malformed data: 'price'"]);
+                return;
             }
 
             if (!empty($quantity) && $quantity < 0){
                 http_response_code(400);
                 echo json_encode(["error" => "Malformed data: 'quantity'"]);
+                return;
             }
 
             try {
-                $res = Cart::changeItem($id, $quantity, $offerPrice);
+                $res = Cart::changeItem($id, $quantity, $price);
                 if ($res){
                     http_response_code(200);
-                    return json_encode(["message" => "Successfully updated cart item"]);
+                    echo json_encode(["message" => "Successfully updated cart item"]);
+                    return;
                 } else {
                     http_response_code(400);
-                    return json_encode([
+                    echo json_encode([
                         "error" => "Error when updating cart item", 
                         "data" => [
-                            "itemId" => $id,
-                            "offerPrice" => $offerPrice,
+                            "item_id" => $id,
+                            "price" => $price,
                             "quantity" => $quantity
                         ]
                     ]);
+                    return;
                 }
             } catch (PDOException $e){
                 http_response_code(500);
-                return json_encode(["error" => $e->getMessage()]);
+                echo json_encode(["error" => $e->getMessage()]);
+                return;
             }
         }
 
         /**
          * GET:
-         * id - id конкретного предмета в списке (itemId)
+         * id - id конкретного предмета в списке (item_id)
          **/
         function removeCartItem() {
             header('Content-type: application/json');
@@ -167,7 +179,8 @@
                 Cart::removeCartItem($id);
             } catch (PDOException $e){
                 http_response_code(500);
-                return json_encode(["error" => $e->getMessage()]);
+                echo json_encode(["error" => $e->getMessage()]);
+                return;
             }
 
             http_response_code(200);

@@ -2,11 +2,14 @@
     require __DIR__ . '/../vendor/autoload.php';
 
     use App\controllers\CartController;
+    use App\controllers\MockController;
     use App\core\Router;
     use App\controllers\RetailCrmController;
     use App\controllers\UserController;
     use App\controllers\SectionController;
     use App\controllers\OfferController;
+
+    session_start();
 
     $router = new Router();
     $retailCrm = new RetailCrmController();
@@ -14,6 +17,9 @@
     $sections = new SectionController();
     $offers = new OfferController();
     $cart = new CartController();
+
+    //! TEMPORAL
+    $mocker = new MockController();
 
     $router->get('/delivery-types', [$retailCrm, 'deliveryTypes']);
     $router->get('/payment-types', [$retailCrm, 'paymentTypes']);
@@ -27,6 +33,10 @@
     $router->post('/api/cart', [$cart, 'addCartItem']);
     $router->put('/api/cart', [$cart, 'changeCartItem']);
     $router->delete('/api/cart', [$cart, 'removeCartItem']);
+
+    //! TEMPORAL
+    $router->get('/mock/login', [$mocker, 'mockLogin']);
+    $router->get('/mock/check-login', [$mocker, 'checkUser']);
 
     $router->resolve();
 ?>
