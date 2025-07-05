@@ -37,16 +37,35 @@ class RetailCrmService
         return ['success' => false, 'message' => 'Непредвиденная ошибка при получении данных из RetailCRM'];
     }
 
-    public function deliveryTypes(): void
+    public function deliveryTypes(): array 
     {
         $data = $this->getCrmData($this->deliveryAPI);
-        print_r($data);
+        
+        $result = [];
+        foreach ($data as $item) {
+            $result[] = [
+                'code' => $item['code'] ?? '',
+                'name' => $item['name'] ?? '',
+                'cost' => $item['defaultCost'] ?? 0
+            ];
+        }
+
+        return ['success' => true, 'deliveryTypes' => $result];
     }
 
-    public function paymentTypes(): void
+    public function paymentTypes(): array 
     {
         $data = $this->getCrmData($this->paymentAPI);
-        print_r($data);
+
+        $result = [];
+        foreach ($data as $item) {
+            $result[] = [
+                'code' => $item['code'] ?? '',
+                'name' => $item['name'] ?? ''
+            ];
+        }
+
+        return ['success' => true, 'paymentTypes' => $result];
     }
 
     public static function createRetailCrmOrder(array $data): array
