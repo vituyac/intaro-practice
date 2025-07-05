@@ -28,12 +28,12 @@ class FakeStoreImporter {
 
             
             // Проверяем наличие родительской категории Электроника
-            $stmt = $this->db->prepare("SELECT id FROM section WHERE title = ?");
+            $stmt = $this->db->prepare("SELECT id FROM sections WHERE title = ?");
             $stmt->execute(['Electronics']);
             $parent = $stmt->fetch();
 
             if (!$parent) {
-                  $stmt = $this->db->prepare("INSERT INTO section (title, parent_id) VALUES (?, NULL)");
+                  $stmt = $this->db->prepare("INSERT INTO sections (title, parent_id) VALUES (?, NULL)");
                   $stmt->execute(['Electronics']);
                   $parentId = $this->db->lastInsertId();
             } else {
@@ -42,13 +42,13 @@ class FakeStoreImporter {
 
             foreach ($categories as $categoryName) {
                   var_dump($categoryName);
-                  $stmt = $this->db->prepare("SELECT id FROM section WHERE title = ?");
+                  $stmt = $this->db->prepare("SELECT id FROM sections WHERE title = ?");
                   $stmt->execute([ucfirst($categoryName)]);
                   $existing = $stmt->fetch();
                   
                   if (!$existing) {
                   $stmt = $this->db->prepare(
-                        "INSERT INTO section (title, parent_id) VALUES (?, ?)"
+                        "INSERT INTO sections (title, parent_id) VALUES (?, ?)"
                   );
                   $stmt->execute([ucfirst($categoryName),$parentId]);
                   }
@@ -69,7 +69,7 @@ class FakeStoreImporter {
                   $categoryTitle = ucfirst($item['category']);
 
                   //ID категории
-                  $stmt = $this->db->prepare("SELECT id FROM section WHERE title = ?");
+                  $stmt = $this->db->prepare("SELECT id FROM sections WHERE title = ?");
                   $stmt->execute([$categoryTitle]);
                   $category = $stmt->fetch();
 
@@ -80,13 +80,13 @@ class FakeStoreImporter {
                   $categoryId = $category['id'];
 
                   // наличие товара
-                  $stmt = $this->db->prepare("SELECT id FROM product WHERE brand = ? AND model = ?");
+                  $stmt = $this->db->prepare("SELECT id FROM products WHERE brand = ? AND model = ?");
                   $stmt->execute([$brand, $model]);
                   $product = $stmt->fetch();
 
                   if (!$product) {
                         $stmt = $this->db->prepare("
-                        INSERT INTO product (name, brand, model, description, category_id)
+                        INSERT INTO products (name, brand, model, description, category_id)
                         VALUES (?, ?, ?, ?, ?)
                         ");
                         $stmt->execute([$name, $brand, $model, $description, $categoryId]);
@@ -100,7 +100,7 @@ class FakeStoreImporter {
                   $isOnSale = $this->normalizeBoolean($item['onSale'] ?? false);
 
                   $stmt = $this->db->prepare("
-                        INSERT INTO offer (
+                        INSERT INTO offers (
                         product_id, title, image, price, color, discount,
                         is_popular, is_on_sale
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
