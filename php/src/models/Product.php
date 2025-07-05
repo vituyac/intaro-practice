@@ -13,31 +13,31 @@ class Product {
     }
 
     public function getAll(): array {
-        $stmt = $this->pdo->query("SELECT * FROM product ORDER BY id");
+        $stmt = $this->pdo->query("SELECT * FROM products ORDER BY id");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getById(int $id): ?array {
-        $stmt = $this->pdo->prepare("SELECT * FROM product WHERE id = :id");
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE id = :id");
         $stmt->execute(['id' => $id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
     }
 
     public function getByBrand(string $brand): array {
-        $stmt = $this->pdo->prepare("SELECT * FROM product WHERE brand = :brand ORDER BY model");
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE brand = :brand ORDER BY model");
         $stmt->execute(['brand' => $brand]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getByCategory(int $categoryId): array {
-        $stmt = $this->pdo->prepare("SELECT * FROM product WHERE category_id = :category_id ORDER BY brand, model");
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE category_id = :category_id ORDER BY brand, model");
         $stmt->execute(['category_id' => $categoryId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getByBrandAndModel(string $brand, string $model): ?array {
-        $stmt = $this->pdo->prepare("SELECT * FROM product WHERE brand = :brand AND model = :model");
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE brand = :brand AND model = :model");
         $stmt->execute([
             'brand' => $brand,
             'model' => $model
@@ -47,13 +47,13 @@ class Product {
     }
 
     public function searchByName(string $searchTerm): array {
-        $stmt = $this->pdo->prepare("SELECT * FROM product WHERE name ILIKE :search_term ORDER BY brand, model");
+        $stmt = $this->pdo->prepare("SELECT * FROM products WHERE name ILIKE :search_term ORDER BY brand, model");
         $stmt->execute(['search_term' => "%{$searchTerm}%"]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getBrands(): array {
-        $stmt = $this->pdo->query("SELECT DISTINCT brand FROM product ORDER BY brand");
+        $stmt = $this->pdo->query("SELECT DISTINCT brand FROM products ORDER BY brand");
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 } 
