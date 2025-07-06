@@ -3,7 +3,8 @@ namespace App\controllers;
 
 use App\models\User;
 use App\services\RetailCrmService;
-use App\utils\RegisterFormValidator;
+use App\utils\FormValidator;
+use App\core\Auth;
 
 class UserController {
     private User $userModel;
@@ -15,10 +16,11 @@ class UserController {
     }
 
     public function register(): void {
+        // Permissions::isAuthenticated();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input = json_decode(file_get_contents('php://input'), true);
 
-            $errors = RegisterFormValidator::validate($input);
+            $errors = FormValidator::validateRegister($input);
             if ($errors) {
                 http_response_code(400);
                 echo json_encode(['details' => $errors]);
@@ -52,4 +54,36 @@ class UserController {
             exit();
         }
     }
+
+    public function login(): void {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $input = json_decode(file_get_contents('php://input'), true);
+
+            $errors = FormValidator::validateLogin($input);
+            if ($errors) {
+                http_response_code(400);
+                echo json_encode(['details' => $errors]);
+                exit();
+            }
+
+            $email = trim($input['email']);
+            $password = $input['password'];
+
+            $user = $this->userModel->getUserByEmail($email);
+
+            if ($user && password_verify($password, $user['password'])) {
+                $_SESSION['user_id'] = $user['id'];
+                exit;
+            } else {
+                http_response_code(403);
+                echo json_encode(['error' => 'Неверный email или пароль']);
+            }
+        }
+    }
+
+    public function logout(): void {
+        session_destroy();
+        exit;
+    }
+
 }

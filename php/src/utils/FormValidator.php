@@ -1,9 +1,23 @@
 <?php
 namespace App\utils;
 
-class RegisterFormValidator
+class FormValidator
 {
-    public static function validate(array $data): ?array
+    public static function validateLogin(array $data): ?array
+    {
+        $errors = [];
+
+        $required = ['email', 'password'];
+        foreach ($required as $field) {
+            if (empty($data[$field])) {
+                $errors[] = "Поле {$field} обязательно";
+            }
+        }
+
+        return $errors ?: null;
+    }
+
+    public static function validateRegister(array $data): ?array
     {
         $errors = [];
 
