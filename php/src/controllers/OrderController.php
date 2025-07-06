@@ -15,31 +15,21 @@
             $payload = json_decode(file_get_contents('php://input'), true);
             
             $userId = trim($payload['id']) ?? '';
-            $surname = trim($payload['surname']) ?? '';
-            $firstname = trim($payload['firstname']) ?? '';
-            $lastname = trim($payload['lastname']) ?? '';
-            $email = trim($payload['email']) ?? '';
             $phone = trim($payload['phone']) ?? '';
             $address = trim($payload['address']) ?? '';
             $paymentType  = trim($payload['paymentType']) ?? '';
             $deliveryType = trim($payload['deliveryType']) ?? '';
 
+            $retailCrmService = new RetailCrmService();
+            $userData = $retailCrmService->getCrmUser($userId);
+
+            $firstName = $userData['firstName'];
+            $lastName = $userData['lastName'];
+            $patronymic = $userData['patronymic'];
+            $email = $userData['email'];
+
             $paterns = PaternsFormOrder::get();
 
-            if (!ValidationFormOrder::validate($surname, $paterns['surname']) || $surname === '') {
-                $this->errors[] = 'Неверный формат фамилии';
-            }
-            if (!ValidationFormOrder::validate($firstname, $paterns['firstname']) || $firstname === '') {
-                $this->errors[] = 'Неверный формат имени';
-            }
-            if ($lastname !== '') {
-                if (!ValidationFormOrder::validate($lastname, $paterns['lastname'])) {
-                    $this->errors[] = 'Неверный формат отчества';
-                }
-            }
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $email === '') {
-                $this->errors[] = 'Неверный формат email';
-            }
             if (!ValidationFormOrder::validate($phone, $paterns['phone']) || $phone === '') {
                 $this->errors[] = 'Неверный формат телефона';
             }
@@ -65,9 +55,9 @@
             $data = [
                 'site' => 'magazin-tekhniki',
                 'order' => [
-                    'firstName' => $firstname,
-                    'lastName' => $surname,
-                    'patronymic' => $lastname,
+                    'firstName' => $firstName,
+                    'lastName' => $lastName,
+                    'patronymic' => $patronymic,
                     'phone' => $phone,
                     'email' => $email,
                     'orderMethod' => 'shopping-cart',
@@ -100,7 +90,7 @@
                 ]
             ];
 
-            $response = RetailCrmService::createRetailCrmOrder($data);
+            $response = $retailCrmService->createOrder($data);
 
             if ($response['success']) {
                 http_response_code(201);
