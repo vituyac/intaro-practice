@@ -16,6 +16,12 @@
             return $stmt->fetch() ?: null;
         }
 
+        public function getUserById(int $id): ?array {
+            $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = ?");
+            $stmt->execute([$id]);
+            return $stmt->fetch() ?: null;
+        }
+
         public function createUser(string $email, string $password): int {
             $stmt = $this->pdo->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
             $stmt->execute([$email, password_hash($password, PASSWORD_DEFAULT)]);
