@@ -27,7 +27,7 @@ $router->post('/basket/making-an-order', [$order, 'pushOrderCrm']);
 
 $router->post('/api/register', [$users, 'register']);
 $router->post('/api/login', [$users, 'login']);
-$router->post('/api/logout', [$users, 'logout']);
+$router->get('/api/logout', [$users, 'logout']);
 
 $router->get('/section', [$sections, 'showSection']);
 $router->get('/offer', [$offers, 'showOffer']);
