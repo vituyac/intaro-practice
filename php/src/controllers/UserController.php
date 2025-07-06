@@ -4,7 +4,7 @@ namespace App\controllers;
 use App\models\User;
 use App\services\RetailCrmService;
 use App\utils\FormValidator;
-use App\core\Permissions;
+use App\core\Auth;
 
 class UserController {
     private User $userModel;

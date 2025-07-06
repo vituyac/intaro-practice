@@ -1,7 +1,7 @@
 <?php
 namespace App\core;
 
-class Permissions {
+class Auth {
     public static function isAuthenticated() {
         if (!isset($_SESSION['user_id'])) {
             http_response_code(403);
