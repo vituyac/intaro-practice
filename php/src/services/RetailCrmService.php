@@ -1,182 +1,134 @@
 <?php
-namespace App\services;
+    namespace App\Services;
 
-class RetailCrmService
-{
-    private string $deliveryAPI = '/api/v5/reference/delivery-types';
-    private string $paymentAPI = '/api/v5/reference/payment-types';
-
-    private function getCrmData(string $api): array
+    class RetailCrmService
     {
-        $config = parse_ini_file(__DIR__ . '/../../.env');
-        $urlCrm = $config['RETAILCRM_API_URL'];
-        $apiKey = $config['RETAILCRM_API_KEY'];
-        $endpoint = "{$urlCrm}{$api}?apiKey={$apiKey}";
+        private string $url;
+        private string $key;
+        private const DELIVERY = '/api/v5/reference/delivery-types';
+        private const PAYMENT = '/api/v5/reference/payment-types';
+        private const ORDER = '/api/v5/orders/create';
+        private const CUSTOMER_CREATE = '/api/v5/customers/create';
+        private const CUSTOMER_DATA = '/api/v5/customers/';
 
-        $curl = curl_init();
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $endpoint,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json']
-        ]);
-
-        $response = curl_exec($curl);
-        $error = curl_error($curl);
-        curl_close($curl);
-
-        if ($error) {
-            return ['success' => false, 'message' => 'Ошибка при получении данных из RetailCRM:' . PHP_EOL . $error];
+        public function __construct()
+        {
+            $cfg=parse_ini_file(__DIR__.'/../../.env');
+            $this->url=$cfg['RETAILCRM_API_URL'];
+            $this->key=$cfg['RETAILCRM_API_KEY'];
         }
 
-        $data = json_decode($response, true);
-
-        if (($data['success'] ?? false) === true) {
-            return $data['deliveryTypes'] ?? $data['paymentTypes'] ?? [];
+        private function request(string $api,array $payload=[],bool $post=false):array
+        {
+            $endpoint=$this->url.$api.'?apiKey='.$this->key;
+            $curl=curl_init($endpoint);
+            $headers=['Content-Type: '.($post?'application/x-www-form-urlencoded':'application/json')];
+            curl_setopt($curl,CURLOPT_RETURNTRANSFER,true);
+            curl_setopt($curl,CURLOPT_HTTPHEADER,$headers);
+            if($post){
+                curl_setopt($curl,CURLOPT_POST,true);
+                curl_setopt($curl,CURLOPT_POSTFIELDS,http_build_query($payload));
+            }
+            $response=curl_exec($curl);
+            $error=curl_error($curl);
+            curl_close($curl);
+            if($error)return['success'=>false,'message'=>$error];
+            return json_decode($response,true);
         }
 
-        return ['success' => false, 'message' => 'Непредвиденная ошибка при получении данных из RetailCRM'];
-    }
-
-    public function deliveryTypes(): array 
-    {
-        $data = $this->getCrmData($this->deliveryAPI);
-        
-        $result = [];
-        foreach ($data as $item) {
-            $result[] = [
-                'code' => $item['code'] ?? '',
-                'name' => $item['name'] ?? '',
-                'cost' => $item['defaultCost'] ?? 0
-            ];
-        }
-
-        return ['success' => true, 'deliveryTypes' => $result];
-    }
-
-    public function paymentTypes(): array 
-    {
-        $data = $this->getCrmData($this->paymentAPI);
-
-        $result = [];
-        foreach ($data as $item) {
-            $result[] = [
-                'code' => $item['code'] ?? '',
-                'name' => $item['name'] ?? ''
-            ];
-        }
-
-        return ['success' => true, 'paymentTypes' => $result];
-    }
-
-    public static function createRetailCrmOrder(array $data): array
-    {
-        $config = parse_ini_file(__DIR__ . '/../../.env');
-        $urlCrm = $config['RETAILCRM_API_URL'];
-        $apiKey = $config['RETAILCRM_API_KEY'];
-        $endpoint = "{$urlCrm}/api/v5/orders/create?apiKey={$apiKey}";
-
-        $curl = curl_init();
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $endpoint,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
-            CURLOPT_POSTFIELDS => http_build_query([
-                'site' => $data['site'],
-                'order' => json_encode($data['order'])
-            ])
-        ]);
-
-        $response = curl_exec($curl);
-        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $error = curl_error($curl);
-        curl_close($curl);
-
-        if ($error) {
-            return ['success' => false, 'message' => 'Ошибка соединения с RetailCRM:' . PHP_EOL . $error];
-        }
-
-        $result = json_decode($response, true);
-
-        if ($httpCode === 201 && ($result['success'] ?? false) === true) {
-            $order = $result['order'];
-            $items = [];
-
-            foreach ($order['items'] as $item) {
-                $items[] = [
-                    'id' => $item['id'],
-                    'name' => $item['offer']['name'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['initialPrice'],
-                    'discount' => $item['discountTotal']
+        public function getDeliveryTypes():array
+        {
+            $data=$this->request(self::DELIVERY);
+            if(!($data['success']??false))return$data;
+            $result=[];
+            foreach($data['deliveryTypes']??[]as$item){
+                $result[]=[
+                    'code'=>$item['code']??'',
+                    'name'=>$item['name']??'',
+                    'cost'=>$item['defaultCost']??0
                 ];
             }
+            return['success'=>true,'deliveryTypes'=>$result];
+        }
 
-            return [
-                'success' => true,
-                'orderId' => $order['id'],
-                'totalSumm' => $order['totalSumm'],
-                'currency' => $order['currency'],
-                'items' => $items
+        public function getPaymentTypes():array
+        {
+            $data=$this->request(self::PAYMENT);
+            if(!($data['success']??false))return$data;
+            $result=[];
+            foreach($data['paymentTypes']??[]as$item){
+                $result[]=[
+                    'code'=>$item['code']??'',
+                    'name'=>$item['name']??''
+                ];
+            }
+            return['success'=>true,'paymentTypes'=>$result];
+        }
+
+        public function createOrder(array $payload):array
+        {
+            $data=$this->request(self::ORDER,[
+                'site'=>$payload['site'],
+                'order'=>json_encode($payload['order'])
+            ],true);
+            if(($data['success']??false)&&isset($data['order'])){
+                $order=$data['order'];
+                $items=[];
+                foreach($order['items']as$item){
+                    $items[]=[
+                        'id'=>$item['id'],
+                        'name'=>$item['offer']['name'],
+                        'quantity'=>$item['quantity'],
+                        'price'=>$item['initialPrice'],
+                        'discount'=>$item['discountTotal']
+                    ];
+                }
+                return[
+                    'success'=>true,
+                    'orderId'=>$order['id'],
+                    'totalSumm'=>$order['totalSumm'],
+                    'currency'=>$order['currency'],
+                    'items'=>$items
+                ];
+            }
+            return['success'=>false,'details'=>$data];
+        }
+
+        public function registerUser(
+            int $externalId,
+            string $email,
+            string $firstName,
+            string $lastName,
+            ?string $patronymic=null
+        ):?int{
+            $customer=[
+                'externalId'=>(string)$externalId,
+                'email'=>$email,
+                'firstName'=>$firstName,
+                'lastName'=>$lastName,
+                'contragent'=>['contragentType'=>'individual']
             ];
+            if($patronymic)$customer['patronymic']=$patronymic;
+            $data=$this->request(self::CUSTOMER_CREATE, [
+                'customer'=>json_encode($customer,JSON_UNESCAPED_UNICODE),
+                'site'=>'magazin-tekhniki'
+            ], true);
+            return(($data['success']??false)&&isset($data['id']))?(int)$data['id']:null;
         }
 
-        return ['success' => false, 'details' => $result];
+        public function getCrmUser(int $externalId):array
+        {
+            $data=$this->request(self::CUSTOMER_DATA . $externalId, ['by'=>'externalId'], false);
+            if(($data['success']??false)&&isset($data['customer'])){
+                $c=$data['customer'];
+                return[
+                    'email'=>$c['email']??'',
+                    'firstName'=>$c['firstName']??'',
+                    'lastName'=>$c['lastName']??'',
+                    'patronymic'=>$c['patronymic']??''
+                ];
+            }
+            return['success'=>false,'details'=>$data];
+        }
     }
-
-    public function registerUser(
-        int $externalId,
-        string $email,
-        string $firstName,
-        string $lastName,
-        ?string $patronymic = null
-    ): ?int {
-        $config = parse_ini_file(__DIR__ . '/../../.env');
-        $urlCrm = $config['RETAILCRM_API_URL'];
-        $apiKey = $config['RETAILCRM_API_KEY'];
-        $endpoint = "{$urlCrm}/api/v5/customers/create?apiKey={$apiKey}";
-
-        $customer = [
-            'externalId' => (string)$externalId,
-            'email' => $email,
-            'firstName' => $firstName,
-            'lastName' => $lastName,
-            'contragent' => ['contragentType' => 'individual']
-        ];
-
-        if ($patronymic) {
-            $customer['patronymic'] = $patronymic;
-        }
-
-        $payload = [
-            'customer' => json_encode($customer, JSON_UNESCAPED_UNICODE),
-            'site' => 'magazin-tekhniki'
-        ];
-
-        $curl = curl_init();
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $endpoint,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
-            CURLOPT_POSTFIELDS => http_build_query($payload)
-        ]);
-
-        $response = curl_exec($curl);
-        $error = curl_error($curl);
-        curl_close($curl);
-
-        if ($error) {
-            return null;
-        }
-
-        $data = json_decode($response, true);
-
-        if (($data['success'] ?? false) === true && isset($data['id'])) {
-            return (int)$data['id'];
-        }
-
-        return null;
-    }
-}
 ?>
