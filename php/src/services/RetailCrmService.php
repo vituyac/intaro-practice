@@ -113,7 +113,7 @@
             string $email,
             string $firstName,
             string $lastName,
-            ?string $patronymic=null
+            ?string $patronymic = null
         ): ?int {
             $customer = [
                 'externalId' => (string)$externalId,
@@ -136,7 +136,7 @@
             $data = $this->request(self::CUSTOMER_DATA . $externalId, ['by' => 'externalId'], false);
             
             if (($data['success'] ?? false) && isset($data['customer'])) {
-                $c=$data['customer'];
+                $c = $data['customer'];
                 return [
                     'email' => $c['email'] ?? '',
                     'firstName' => $c['firstName'] ?? '',
@@ -145,7 +145,7 @@
                 ];
             }
 
-            return ['success' => false,'details' => $data];
+            return ['success' => false, 'details' => $data];
         }
     }
 
