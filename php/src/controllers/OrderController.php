@@ -3,9 +3,9 @@
     namespace App\controllers;
 
     use App\services\RetailCrmService;
-
     use App\utils\PaternsFormOrder;
     use App\utils\ValidationFormOrder;
+    use App\models\Cart;
 
     class OrderController {
 
@@ -14,11 +14,11 @@
         public function pushOrderCrm(): void {
             $payload = json_decode(file_get_contents('php://input'), true);
             
-            $userId = trim($payload['id']) ?? '';
-            $phone = trim($payload['phone']) ?? '';
-            $address = trim($payload['address']) ?? '';
-            $paymentType  = trim($payload['paymentType']) ?? '';
-            $deliveryType = trim($payload['deliveryType']) ?? '';
+            $userId = trim($payload['id'] ?? '');
+            $phone = trim($payload['phone'] ?? '');
+            $address = trim($payload['address'] ?? '');
+            $paymentType  = trim($payload['paymentType'] ?? '');
+            $deliveryType = trim($payload['deliveryType'] ?? '');
 
             $retailCrmService = new RetailCrmService();
             $userData = $retailCrmService->getCrmUser($userId);
@@ -52,6 +52,28 @@
                 exit;
             }
 
+            $cartItems = Cart::getUserCartItemList($userId);
+            if (empty($cartItems)) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Корзина пуста'
+                ]);
+                exit;
+            }
+
+            $orderItems = [];
+            foreach ($cartItems as $item) {
+                $orderItems[] = [
+                    'productName' => $item['product_name'],
+                    'initialPrice' => (float)$item['price'],
+                    'quantity' => (int)$item['quantity'],
+                    'offer' => [
+                        'externalId' => (string)$item['offer_id']
+                    ]
+                ];
+            }
+
             $data = [
                 'site' => 'magazin-tekhniki',
                 'order' => [
@@ -62,6 +84,7 @@
                     'email' => $email,
                     'orderMethod' => 'shopping-cart',
                     'orderType' => 'eshop-individual',
+                    'isFromCart' => true,
                     'delivery' => [
                         'code' => $deliveryType,
                         'address' => [
@@ -74,18 +97,12 @@
                             'status' => 'invoice'
                         ]
                     ],
-                    'items' => [
-                        [
-                            'productName' => 'Товар №1',
-                            'initialPrice' => 6000,
-                            'quantity' => 5,
-                            'offer' => [
-                                'externalId' => '11'
-                            ]
-                        ]
-                    ],
+                    'items' => $orderItems,
                     'customer' => [
                         'externalId' => $userId
+                    ],
+                    'contragent' => [
+                        'contragentType' => 'individual'
                     ]
                 ]
             ];
@@ -93,6 +110,7 @@
             $response = $retailCrmService->createOrder($data);
 
             if ($response['success']) {
+                Cart::clearCart($userId);
                 http_response_code(201);
                 echo json_encode($response);
             } else {
