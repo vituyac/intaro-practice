@@ -21,9 +21,9 @@ $offers = new OfferController();
 $cart = new CartController();
 $mocker = new MockController();
 
-$router->get('/delivery-types', [$retailCrm, 'deliveryTypes']);
-$router->get('/payment-types', [$retailCrm, 'paymentTypes']);
-$router->post('/basket/making-an-order', [$order, 'pushOrderCrm']);
+$router->get('/api/delivery-types', [$retailCrm, 'deliveryTypes']);
+$router->get('/api/payment-types', [$retailCrm, 'paymentTypes']);
+$router->post('/api/cart/making-an-order', [$order, 'pushOrderCrm']);
 
 $router->post('/api/register', [$users, 'register']);
 $router->post('/api/login', [$users, 'login']);
