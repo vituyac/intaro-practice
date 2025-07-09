@@ -1,6 +1,7 @@
 <?php
     namespace App\models;
     use App\core\Database;
+    use App\Services\RetailCrmService;
     use PDO;
 
     class User {
@@ -31,6 +32,30 @@
         public function setExternalID(int $userId, string $externalId): void {
             $stmt = $this->pdo->prepare("UPDATE users SET external_id = ? WHERE id = ?");
             $stmt->execute([$externalId, $userId]);
+        }
+
+        public function getExternalId(int $userId): ?string {
+            $stmt = $this->pdo->prepare("SELECT external_id FROM users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $result = $stmt->fetch();
+            return $result['external_id'] ?? null;
+        }
+
+        public function getCrmData(int $userId, RetailCrmService $crmService): ?array
+        {
+            $externalId = $this->getExternalId($userId);
+            if (!$externalId) return null;
+            
+            return $crmService->getCrmUser($externalId);
+        }
+
+        public function updateCrmData(int $userId, array $data, RetailCrmService $crmService): bool
+        {
+            $externalId = $this->getExternalId($userId);
+            if (!$externalId) return false;
+            
+            $response = $crmService->updateCustomer($externalId, $data);
+            return $response['success'] ?? false;
         }
     }
 ?>

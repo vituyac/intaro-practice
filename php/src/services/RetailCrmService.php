@@ -10,6 +10,10 @@
         private const ORDER = '/api/v5/orders/create';
         private const CUSTOMER_CREATE = '/api/v5/customers/create';
         private const CUSTOMER_DATA = '/api/v5/customers/';
+        private const CUSTOMER_ORDERS = '/api/v5/orders';
+        private const CUSTOMER_UPDATE = '/api/v5/customers/';
+        private const ICML_GENERATE = '/api/v5/store/integration-module/generate';
+
 
         public function __construct() {
             $cfg = parse_ini_file(__DIR__ . '/../../.env');
@@ -39,6 +43,38 @@
             }
 
             return json_decode($response, true);
+        }
+
+        public function getCustomerOrders(int $externalId, int $page = 1, int $limit = 10): array
+        {
+            $data = $this->request(self::CUSTOMER_ORDERS, [
+                'customerExternalId' => $externalId,
+                'page' => $page,
+                'limit' => $limit
+            ], false);
+            
+            if (!($data['success'] ?? false)) {
+                return ['success' => false, 'orders' => [], 'pagination' => []];
+            }
+            
+            return [
+                'success' => true,
+                'orders' => $data['orders'] ?? [],
+                'pagination' => $data['pagination'] ?? []
+            ];
+        }
+
+        public function updateCustomer(int $externalId, array $customerData): array
+        {
+            $data = $this->request(self::CUSTOMER_UPDATE . $externalId . '/edit', [
+                'customer' => json_encode(array_merge(
+                    ['externalId' => (string)$externalId],
+                    $customerData
+                ), JSON_UNESCAPED_UNICODE),
+                'by' => 'externalId'
+            ], true);
+            
+            return $data;
         }
 
         public function DeliveryTypes(): array {
@@ -125,7 +161,7 @@
 
             if ($patronymic) $customer['patronymic'] = $patronymic;
             $data = $this->request(self::CUSTOMER_CREATE, [
-                'customer' => json_encode($customer,JSON_UNESCAPED_UNICODE),
+                'customer' => json_encode($customer, JSON_UNESCAPED_UNICODE),
                 'site' => 'magazin-tekhniki'
             ], true);
 
