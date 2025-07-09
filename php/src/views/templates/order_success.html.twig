@@ -1,0 +1,57 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Заказ оформлен - Интернет-магазин{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-check-circle display-1 text-success mb-4"></i>
+                    <h2 class="mb-4">Спасибо за заказ!</h2>
+                    <p class="lead mb-4">Ваш заказ успешно оформлен и принят в обработку.</p>
+                    
+                    {% if order_id %}
+                        <div class="alert alert-info">
+                            <strong>Номер заказа:</strong> {{ order_id }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-envelope display-4 text-primary mb-3"></i>
+                                    <h5>Письмо с подтверждением</h5>
+                                    <p class="text-muted">Мы отправили письмо с деталями заказа на ваш email.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-clock display-4 text-warning mb-3"></i>
+                                    <h5>Обработка заказа</h5>
+                                    <p class="text-muted">Мы свяжемся с вами в ближайшее время для уточнения деталей.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-5">
+                        <a href="/" class="btn btn-primary me-3">
+                            <i class="bi bi-house"></i>
+                            На главную
+                        </a>
+                        <a href="/orders" class="btn btn-outline-primary">
+                            <i class="bi bi-list-ul"></i>
+                            Мои заказы
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

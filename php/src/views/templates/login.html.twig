@@ -1,0 +1,182 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Вход - Интернет-магазин{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-circle display-4 text-primary"></i>
+                    <h2 class="mt-2">Вход в систему</h2>
+                    <p class="text-muted">Войдите в свой аккаунт</p>
+                </div>
+                
+                {% if error is defined %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        {{ error }}
+                    </div>
+                {% endif %}
+                
+                <form id="loginForm" method="POST" action="/api/login">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control" id="email" name="email" required 
+                                   placeholder="Введите ваш email" value="{{ email|default('') }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Пароль</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" required 
+                                   placeholder="Введите ваш пароль">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">
+                            Запомнить меня
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            Войти
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center">
+                    <p class="mb-2">
+                        <a href="/forgot-password" class="text-decoration-none">Забыли пароль?</a>
+                    </p>
+                    <p class="text-muted">
+                        Нет аккаунта? 
+                        <a href="/register" class="text-decoration-none">Зарегистрироваться</a>
+                    </p>
+                </div>
+                
+                <!-- Demo Login -->
+                <div class="border-top pt-3 mt-3">
+                    <div class="text-center mb-2">
+                        <small class="text-muted">Для демонстрации:</small>
+                    </div>
+                    <div class="d-grid">
+                        <a href="/mock/login" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-person-gear"></i>
+                            Демо-вход
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle password visibility
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        const icon = this.querySelector('i');
+        if (type === 'password') {
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        } else {
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        }
+    });
+    
+    // Form submission
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Вход...';
+        
+        // Собираем данные формы как JSON
+        const data = {
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        };
+        
+        fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(async response => {
+            if (response.status === 200) {
+                // Пытаемся распарсить JSON, если есть тело
+                const text = await response.text();
+                if (text) {
+                    try {
+                        const data = JSON.parse(text);
+                        if (data && data.success) {
+                            const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/';
+                            window.location.href = redirectUrl;
+                            return;
+                        } else if (data && (data.error || data.message)) {
+                            throw new Error(data.error || data.message);
+                        }
+                    } catch (e) {
+                        // Не JSON, но статус 200 — считаем успехом
+                    }
+                }
+                // Пустой ответ, но статус 200 — считаем успехом
+                const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/';
+                window.location.href = redirectUrl;
+                return;
+            }
+            // Если не 200 — ошибка
+            throw new Error('Некорректный ответ сервера');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            
+            // Show error message
+            let errorDiv = document.querySelector('.alert-danger');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                loginForm.insertBefore(errorDiv, loginForm.firstChild);
+            }
+            errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + error.message;
+            
+            // Reset button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
+    });
+});
+</script>
+{% endblock %}
+
