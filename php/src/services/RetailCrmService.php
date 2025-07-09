@@ -1,8 +1,8 @@
 <?php
+
     namespace App\Services;
 
-    class RetailCrmService
-    {
+    class RetailCrmService {
         private string $url;
         private string $key;
         private const DELIVERY = '/api/v5/reference/delivery-types';
@@ -15,11 +15,10 @@
         private const ICML_GENERATE = '/api/v5/store/integration-module/generate';
 
 
-        public function __construct()
-        {
-            $cfg=parse_ini_file(__DIR__.'/../../.env');
-            $this->url=$cfg['RETAILCRM_API_URL'];
-            $this->key=$cfg['RETAILCRM_API_KEY'];
+        public function __construct() {
+            $cfg = parse_ini_file(__DIR__ . '/../../.env');
+            $this->url = $cfg['RETAILCRM_API_URL'];
+            $this->key = $cfg['RETAILCRM_API_KEY'];
         }
 
         private function request(string $api, array $payload = [], bool $post = false): array {
@@ -45,7 +44,6 @@
 
             return json_decode($response, true);
         }
-
 
         public function getCustomerOrders(int $externalId, int $page = 1, int $limit = 10): array
         {
@@ -163,7 +161,7 @@
 
             if ($patronymic) $customer['patronymic'] = $patronymic;
             $data = $this->request(self::CUSTOMER_CREATE, [
-                'customer' => json_encode($customer,JSON_UNESCAPED_UNICODE),
+                'customer' => json_encode($customer, JSON_UNESCAPED_UNICODE),
                 'site' => 'magazin-tekhniki'
             ], true);
 
@@ -186,4 +184,5 @@
             return ['success' => false, 'details' => $data];
         }
     }
+
 ?>

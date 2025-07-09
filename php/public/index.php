@@ -29,9 +29,9 @@ $userModel = new User();
 $auth = new Auth();
 $profile = new ProfileController($crm, $userModel, $auth);
 
-$router->get('/delivery-types', [$retailCrm, 'deliveryTypes']);
-$router->get('/payment-types', [$retailCrm, 'paymentTypes']);
-$router->post('/basket/making-an-order', [$order, 'pushOrderCrm']);
+$router->get('/api/delivery-types', [$retailCrm, 'deliveryTypes']);
+$router->get('/api/payment-types', [$retailCrm, 'paymentTypes']);
+$router->post('/api/cart/making-an-order', [$order, 'pushOrderCrm']);
 
 $router->post('/api/register', [$users, 'register']);
 $router->post('/api/login', [$users, 'login']);
