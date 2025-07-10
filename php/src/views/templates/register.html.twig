@@ -1,0 +1,387 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Регистрация - Интернет-магазин{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-plus display-4 text-primary"></i>
+                    <h2 class="mt-2">Регистрация</h2>
+                    <p class="text-muted">Создайте новый аккаунт</p>
+                </div>
+                
+                {% if error is defined %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        {{ error }}
+                    </div>
+                {% endif %}
+                
+                {% if success is defined %}
+                    <div class="alert alert-success" role="alert">
+                        <i class="bi bi-check-circle"></i>
+                        {{ success }}
+                    </div>
+                {% endif %}
+                
+                <form id="registerForm" method="POST" action="/api/register">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">Имя *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input type="text" class="form-control" id="firstName" name="firstName" required 
+                                       placeholder="Введите ваше имя" value="{{ firstName|default('') }}">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Фамилия *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input type="text" class="form-control" id="lastName" name="lastName" required 
+                                       placeholder="Введите вашу фамилию" value="{{ lastName|default('') }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control" id="email" name="email" required 
+                                   placeholder="Введите ваш email" value="{{ email|default('') }}">
+                        </div>
+                        <div class="form-text">Мы никогда не передадим ваш email третьим лицам.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Телефон</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-telephone"></i>
+                            </span>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   placeholder="+7 (999) 123-45-67" value="{{ phone|default('') }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Пароль *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="password" name="password" required 
+                                       placeholder="Введите пароль" minlength="6">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">Пароль должен содержать минимум 8 символов, хотя бы одну букву и одну цифру</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="confirmPassword" class="form-label">Подтвердите пароль *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required 
+                                       placeholder="Повторите пароль">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Password strength indicator -->
+                    <div class="mb-3">
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar" id="passwordStrength" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small class="form-text" id="passwordStrengthText"></small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="birthDate" class="form-label">Дата рождения</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-calendar"></i>
+                            </span>
+                            <input type="date" class="form-control" id="birthDate" name="birthDate" value="{{ birthDate|default('') }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="gender" class="form-label">Пол</label>
+                        <select class="form-select" id="gender" name="gender">
+                            <option value="">Не указан</option>
+                            <option value="male" {% if gender == 'male' %}selected{% endif %}>Мужской</option>
+                            <option value="female" {% if gender == 'female' %}selected{% endif %}>Женский</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Адрес доставки</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-geo-alt"></i>
+                            </span>
+                            <textarea class="form-control" id="address" name="address" rows="2" 
+                                      placeholder="Введите ваш адрес">{{ address|default('') }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="agreeTerms" name="agreeTerms" required>
+                        <label class="form-check-label" for="agreeTerms">
+                            Я согласен с <a href="/terms" target="_blank" class="text-decoration-none">условиями использования</a> 
+                            и <a href="/privacy" target="_blank" class="text-decoration-none">политикой конфиденциальности</a> *
+                        </label>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="newsletter" name="newsletter">
+                        <label class="form-check-label" for="newsletter">
+                            Подписаться на новости и специальные предложения
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-person-plus"></i>
+                            Зарегистрироваться
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center">
+                    <p class="text-muted">
+                        Уже есть аккаунт? 
+                        <a href="/login" class="text-decoration-none">Войти</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle password visibility
+    function setupPasswordToggle(toggleId, inputId) {
+        const toggle = document.getElementById(toggleId);
+        const input = document.getElementById(inputId);
+        
+        toggle.addEventListener('click', function() {
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            
+            const icon = this.querySelector('i');
+            if (type === 'password') {
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            } else {
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            }
+        });
+    }
+    
+    setupPasswordToggle('togglePassword', 'password');
+    setupPasswordToggle('toggleConfirmPassword', 'confirmPassword');
+    
+    // Password strength checker
+    const passwordInput = document.getElementById('password');
+    const strengthBar = document.getElementById('passwordStrength');
+    const strengthText = document.getElementById('passwordStrengthText');
+    
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        const strength = calculatePasswordStrength(password);
+        
+        strengthBar.style.width = strength.percentage + '%';
+        strengthBar.className = 'progress-bar ' + strength.class;
+        strengthText.textContent = strength.text;
+        strengthText.className = 'form-text ' + strength.textClass;
+    });
+    
+    function calculatePasswordStrength(password) {
+        let score = 0;
+        if (password.length >= 8) score += 1;
+        if (/[A-Za-z]/.test(password)) score += 1;
+        if (/\d/.test(password)) score += 1;
+        if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+        if (score < 2) {
+            return {
+                percentage: 20,
+                class: 'bg-danger',
+                text: 'Слабый пароль (минимум 8 символов, буква и цифра)',
+                textClass: 'text-danger'
+            };
+        } else if (score < 3) {
+            return {
+                percentage: 50,
+                class: 'bg-warning',
+                text: 'Средний пароль',
+                textClass: 'text-warning'
+            };
+        } else if (score < 4) {
+            return {
+                percentage: 75,
+                class: 'bg-info',
+                text: 'Хороший пароль',
+                textClass: 'text-info'
+            };
+        } else {
+            return {
+                percentage: 100,
+                class: 'bg-success',
+                text: 'Отличный пароль',
+                textClass: 'text-success'
+            };
+        }
+    }
+    
+    // Phone number formatting
+    const phoneInput = document.getElementById('phone');
+    phoneInput.addEventListener('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        if (value.startsWith('8')) {
+            value = '7' + value.slice(1);
+        }
+        if (value.startsWith('7') && value.length <= 11) {
+            value = value.replace(/^7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 ($1) $2-$3-$4');
+            value = value.replace(/^7(\d{3})(\d{3})(\d{2})$/, '+7 ($1) $2-$3');
+            value = value.replace(/^7(\d{3})(\d{3})$/, '+7 ($1) $2');
+            value = value.replace(/^7(\d{3})$/, '+7 ($1');
+            value = value.replace(/^7(\d{1,3})$/, '+7 ($1');
+        }
+        this.value = value;
+    });
+    
+    // Form validation
+    const registerForm = document.getElementById('registerForm');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    
+    confirmPasswordInput.addEventListener('input', function() {
+        const password = passwordInput.value;
+        const confirmPassword = this.value;
+        
+        if (password !== confirmPassword) {
+            this.setCustomValidity('Пароли не совпадают');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // Form submission
+    registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Регистрация...';
+        
+        // --- Normalize phone number before sending ---
+        const phoneInput = document.getElementById('phone');
+        let rawPhone = '';
+        if (phoneInput && phoneInput.value) {
+            rawPhone = phoneInput.value.replace(/[^\d+]/g, '');
+            if (rawPhone.startsWith('8')) {
+                rawPhone = '+7' + rawPhone.slice(1);
+            }
+            if (rawPhone.startsWith('7') && !rawPhone.startsWith('+7')) {
+                rawPhone = '+7' + rawPhone.slice(1);
+            }
+        }
+        // --- End normalization ---
+        
+        // Collect form data as JSON
+        const data = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            email: document.getElementById('email').value,
+            phone: rawPhone,
+            password: document.getElementById('password').value,
+            confirm: document.getElementById('confirmPassword').value
+        };
+        
+        fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(async response => {
+            if (response.status === 200) {
+                // Пытаемся распарсить JSON, если есть тело
+                const text = await response.text();
+                if (text) {
+                    try {
+                        const data = JSON.parse(text);
+                        if (data && data.success) {
+                            const successDiv = document.createElement('div');
+                            successDiv.className = 'alert alert-success';
+                            successDiv.innerHTML = '<i class="bi bi-check-circle"></i> Регистрация успешна! Перенаправление...';
+                            registerForm.insertBefore(successDiv, registerForm.firstChild);
+                            setTimeout(() => {
+                                window.location.href = '/login?registered=1';
+                            }, 2000);
+                            return;
+                        } else if (data && (data.error || data.message)) {
+                            throw new Error(data.error || data.message);
+                        }
+                    } catch (e) {
+                        // Не JSON, но статус 200 — считаем успехом
+                    }
+                }
+                // Пустой ответ, но статус 200 — считаем успехом
+                const successDiv = document.createElement('div');
+                successDiv.className = 'alert alert-success';
+                successDiv.innerHTML = '<i class="bi bi-check-circle"></i> Регистрация успешна! Перенаправление...';
+                registerForm.insertBefore(successDiv, registerForm.firstChild);
+                setTimeout(() => {
+                    window.location.href = '/login?registered=1';
+                }, 2000);
+                return;
+            }
+            // Если не 200 — ошибка
+            throw new Error('Некорректный ответ сервера');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Show error message
+            let errorDiv = document.querySelector('.alert-danger');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                registerForm.insertBefore(errorDiv, registerForm.firstChild);
+            }
+            errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + error.message;
+            // Reset button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
+    });
+});
+</script>
+{% endblock %}
+

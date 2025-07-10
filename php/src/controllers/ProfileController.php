@@ -27,8 +27,14 @@ class ProfileController
 
         $userId = $this->auth->getUserId();
         $profileData = $this->userModel->getCrmData($userId, $this->crm);
-        
-        include __DIR__ . '/../views/profile/profile.php';
+        $user = $this->userModel->getUserById($userId);
+        $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../views/templates');
+        $twig = new \Twig\Environment($loader);
+        $twig->addGlobal('user', $user);
+        echo $twig->render('profile.html.twig', [
+            'profileData' => $profileData,
+            // можно добавить другие переменные, если нужны шаблону
+        ]);
     }
 
     public function showOrders()
@@ -43,18 +49,24 @@ class ProfileController
         $user = $this->userModel->getUserById($userId);
         $email = $user['email'] ?? null;
         $page = max(1, $_GET['page'] ?? 1);
-        
-        $ordersData = $externalId 
+
+        $ordersData = $externalId
             ? $this->crm->getCustomerOrders($externalId, $page)
             : ['success' => false, 'orders' => [], 'pagination' => []];
 
         if (!empty($ordersData['orders']) && $email) {
-            $ordersData['orders'] = array_filter($ordersData['orders'], function($order) use ($email) {
+            $ordersData['orders'] = array_filter($ordersData['orders'], function ($order) use ($email) {
                 return isset($order['email']) && $order['email'] === $email;
             });
         }
 
-        include __DIR__ . '/../views/profile/orders.php';
+        $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../views/templates');
+        $twig = new \Twig\Environment($loader);
+        $twig->addGlobal('user', $user);
+        echo $twig->render('orders.html.twig', [
+            'orders' => $ordersData['orders'] ?? [],
+            'pagination' => $ordersData['pagination'] ?? [],
+        ]);
     }
 
     public function updateProfile()
@@ -65,17 +77,24 @@ class ProfileController
         }
 
         $userId = $this->auth->getUserId();
+
         $data = [
             'firstName' => $_POST['firstName'] ?? '',
             'lastName' => $_POST['lastName'] ?? '',
             'patronymic' => $_POST['patronymic'] ?? null,
             'email' => $_POST['email'] ?? '',
-            'phone' => $_POST['phone'] ?? ''
+            'phone' => $_POST['phone'] ?? '',
+            'birthday' => $_POST['birthday'] ?? '',
+            'address' => ['text' => $_POST['address'] ?? '']
         ];
 
         $success = $this->userModel->updateCrmData($userId, $data, $this->crm);
-        
-        echo json_encode(['success' => $success]);
+
+        if ($success) {
+            header('Location: /profile?success=1');
+        } else {
+            header('Location: /profile?error=1');
+        }
         exit;
     }
 }

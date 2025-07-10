@@ -1,0 +1,112 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Главная - Интернет-магазин{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="bg-primary text-white p-5 rounded">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 fw-bold">Добро пожаловать в наш интернет-магазин!</h1>
+                    <p class="lead">Широкий ассортимент качественных товаров по выгодным ценам. Быстрая доставка и надежный сервис.</p>
+                    <a href="/section" class="btn btn-light btn-lg">
+                        <i class="bi bi-arrow-right"></i>
+                        Перейти к каталогу
+                    </a>
+                </div>
+                <div class="col-md-4 text-center">
+                    <i class="bi bi-shop display-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h2 class="text-center mb-4">Почему выбирают нас?</h2>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center border-0 shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-truck display-4 text-primary mb-3"></i>
+                <h5 class="card-title">Быстрая доставка</h5>
+                <p class="card-text">Доставляем заказы в кратчайшие сроки по всей стране. Несколько способов доставки на выбор.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center border-0 shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-shield-check display-4 text-success mb-3"></i>
+                <h5 class="card-title">Гарантия качества</h5>
+                <p class="card-text">Все товары проходят строгий контроль качества. Предоставляем официальную гарантию.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center border-0 shadow-sm">
+            <div class="card-body">
+                <i class="bi bi-headset display-4 text-info mb-3"></i>
+                <h5 class="card-title">Поддержка 24/7</h5>
+                <p class="card-text">Наша служба поддержки готова помочь вам в любое время. Быстрые и квалифицированные ответы.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popular Categories -->
+{% if sections is defined and sections %}
+<div class="row mb-5">
+    <div class="col-12">
+        <h2 class="text-center mb-4">Популярные категории</h2>
+    </div>
+    {% for section in sections %}
+        {% if section.parentId is empty %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card border-0 shadow-sm product-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-grid display-4 text-primary mb-3"></i>
+                        <h5 class="card-title">{{ section.name }}</h5>
+                        <p class="card-text text-muted">{{ section.description|default('Широкий выбор товаров в категории') }}</p>
+                        <a href="/section?id={{ section.id }}" class="btn btn-outline-primary">
+                            Перейти в категорию
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Call to Action -->
+<div class="row">
+    <div class="col-12">
+        <div class="bg-light p-4 rounded text-center">
+            <h3>Готовы начать покупки?</h3>
+            <p class="text-muted mb-3">Зарегистрируйтесь сейчас и получите доступ ко всем функциям магазина</p>
+            {% if not user %}
+                <a href="/register" class="btn btn-primary me-2">
+                    <i class="bi bi-person-plus"></i>
+                    Зарегистрироваться
+                </a>
+                <a href="/login" class="btn btn-outline-primary">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Войти
+                </a>
+            {% else %}
+                <a href="/section" class="btn btn-primary">
+                    <i class="bi bi-shop"></i>
+                    Перейти к покупкам
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

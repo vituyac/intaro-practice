@@ -1,25 +1,31 @@
 <?php
 namespace App\core;
 
-class Router {
+class Router
+{
     private array $routes = [];
 
-    public function get(string $route, callable $callback): void {
+    public function get(string $route, callable $callback): void
+    {
         $this->routes['GET'][$route] = $callback;
     }
 
-    public function post(string $route, callable $callback): void {
+    public function post(string $route, callable $callback): void
+    {
         $this->routes['POST'][$route] = $callback;
     }
 
-    public function put(string $route, callable $callback): void {
+    public function put(string $route, callable $callback): void
+    {
         $this->routes['PUT'][$route] = $callback;
     }
 
-    public function delete(string $route, callable $callback): void {
+    public function delete(string $route, callable $callback): void
+    {
         $this->routes['DELETE'][$route] = $callback;
     }
-    public function resolve(): void {
+    public function resolve(): void
+    {
         $method = $_SERVER['REQUEST_METHOD'];
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $path = preg_replace('#^/index\.php#', '', $path) ?: '/';
@@ -32,4 +38,7 @@ class Router {
         }
     }
 }
+
+
+
 ?>
