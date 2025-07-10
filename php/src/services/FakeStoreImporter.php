@@ -25,8 +25,7 @@ class FakeStoreImporter {
             $json = file_get_contents($this->categoriesUrl);
             $data = json_decode($json, true);
             $categories = $data['categories'] ?? [];
-
-            
+           
             // Проверяем наличие родительской категории Электроника
             $stmt = $this->db->prepare("SELECT id FROM sections WHERE title = ?");
             $stmt->execute(['Electronics']);
@@ -57,6 +56,8 @@ class FakeStoreImporter {
       
       
       private function importProducts() {
+            $usdToRub = $this->getUsdToRubRate();
+
             $json = file_get_contents($this->apiUrl);
             $data = json_decode($json, true);
             $products = $data['products'] ?? [];
@@ -98,6 +99,7 @@ class FakeStoreImporter {
                   // торговое предложение                  
                   $isPopular = $this->normalizeBoolean($item['popular'] ?? false);
                   $isOnSale = $this->normalizeBoolean($item['onSale'] ?? false);
+                  $priceRub = round($item['price'] * $usdToRub, 2);
 
                   $stmt = $this->db->prepare("
                         INSERT INTO offers (
@@ -110,7 +112,7 @@ class FakeStoreImporter {
                         $productId,
                         $item['title'],
                         $item['image'] ?? null,
-                        $item['price'],
+                        $priceRub,
                         $item['color'] ?? null,
                         $item['discount'] ?? 0,
                         $isPopular ? 't' : 'f', 
@@ -136,5 +138,29 @@ class FakeStoreImporter {
             }
             return false;
       }
+
+      private function getUsdToRubRate(): float {
+            $defaultRate = 78.0;
+
+            try {
+                  $json = @file_get_contents('https://www.cbr-xml-daily.ru/daily_json.js');
+
+                  if ($json === false) {
+                        throw new \Exception("Сервис недоступен");
+                  }
+
+                  $data = json_decode($json, true);
+
+                  if (!isset($data['Valute']['USD']['Value'])) {
+                        throw new \Exception("Курс USD не найден в ответе");
+                  }
+
+                  return floatval($data['Valute']['USD']['Value']);
+            } catch (\Throwable $e) {
+                  return $defaultRate;
+            }
+            }
+
 }
+
 
