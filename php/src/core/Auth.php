@@ -1,21 +1,14 @@
 <?php
-namespace App\core;
+    namespace App\core;
 
-class Auth {
-    public static function isAuthenticated() {
-        if (!isset($_SESSION['user_id'])) {
-            http_response_code(401);
-            exit(json_encode(['error' => 'Требуется аутентификация']));
+    class Auth {
+
+        public function isLoggedIn(): bool {
+            return isset($_SESSION['user_id']);
         }
-        return true;
-    }
 
-    public function isLoggedIn(): bool {
-        return isset($_SESSION['user_id']);
+        public function getUserId(): ?int {
+            return $_SESSION['user_id'] ?? null;
+        }
     }
-
-    public function getUserId(): ?int {
-        return $_SESSION['user_id'] ?? null;
-    }
-}
 ?>
