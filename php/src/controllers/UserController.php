@@ -36,10 +36,7 @@ class UserController
             $password = $input['password'];
             $firstName = $input['firstName'];
             $lastName = $input['lastName'];
-            $patronymic = $input['patronymic'] ?? null;
             $phone = $input['phone'] ?? '';
-            $birthday = $input['birthday'] ?? '';
-            $sex = $input['sex'] ?? '';
 
             if ($this->userModel->getUserByEmail($email)) {
                 http_response_code(409);
@@ -50,7 +47,7 @@ class UserController
             $userId = $this->userModel->createUser($email, $password);
 
             if ($userId) {
-                $srm_id = $this->srm->registerUser($userId, $email, $firstName, $lastName, $patronymic, $phone, $birthday, $sex);
+                $srm_id = $this->srm->registerUser($userId, $email, $firstName, $lastName, null, $phone, null, null);
                 if ($srm_id) {
                     $this->userModel->setExternalID($userId, $userId);
                     http_response_code(200);
@@ -94,6 +91,7 @@ class UserController
     public function logout(): void
     {
         session_destroy();
+        header('Location: /');
         exit;
     }
 

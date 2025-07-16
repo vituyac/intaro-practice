@@ -6,7 +6,6 @@
 <div class="row">
 
     <div class="col-md-3">
-        <!-- Profile Sidebar -->
         <div class="card shadow-sm">
             <div class="card-body text-center">
                 <div class="mb-3">
@@ -36,7 +35,6 @@
     </div>
     
     <div class="col-md-9">
-        <!-- Profile Form -->
         <div class="card shadow-sm">
             <div class="card-header">
                 <h5 class="mb-0">
@@ -98,7 +96,6 @@
             </div>
         </div>
         
-        <!-- Account Statistics -->
         <div class="row mt-4">
             <div class="col-md-4">
                 <div class="card text-center border-0 shadow-sm">
@@ -137,7 +134,6 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Phone number formatting
     const phoneInput = document.getElementById('phone');
     phoneInput.addEventListener('input', function() {
         let value = this.value.replace(/\D/g, '');
@@ -154,7 +150,6 @@ document.addEventListener('DOMContentLoaded', function() {
         this.value = value;
     });
     
-    // Password confirmation validation
     const newPasswordInput = document.getElementById('newPassword');
     const confirmNewPasswordInput = document.getElementById('confirmNewPassword');
     
@@ -172,17 +167,14 @@ document.addEventListener('DOMContentLoaded', function() {
     newPasswordInput.addEventListener('input', validatePasswordConfirmation);
     confirmNewPasswordInput.addEventListener('input', validatePasswordConfirmation);
     
-    // Form submission
     const profileForm = document.getElementById('profileForm');
     profileForm.addEventListener('submit', function(e) {
         const submitBtn = this.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         
-        // Show loading state
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Сохранение...';
         
-        // Let the form submit normally
         setTimeout(() => {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;

@@ -5,7 +5,6 @@
 {% block content %}
 <div class="row">
     <div class="col-md-3">
-        <!-- Profile Sidebar -->
         <div class="card shadow-sm">
             <div class="card-body text-center">
                 <div class="mb-3">
@@ -35,14 +34,12 @@
     </div>
     
     <div class="col-md-9">
-        <!-- Orders Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>
                 <i class="bi bi-bag-check me-2"></i>
                 История заказов
             </h2>
             
-            <!-- Filters -->
             <div class="d-flex gap-2">
                 <select class="form-select form-select-sm" id="statusFilter" style="width: auto;">
                     <option value="">Все статусы</option>
@@ -63,7 +60,6 @@
         </div>
         
         {% if orders is defined and orders %}
-            <!-- Orders List -->
             {% for order in orders %}
                 <div class="card shadow-sm mb-3 order-card" data-status="{{ order.status is iterable ? order.status.code : order.status }}" data-date="{{ order.createdAt }}">
                     <div class="card-header">
@@ -106,7 +102,6 @@
                     
                     <div class="collapse" id="order-{{ order.id }}">
                         <div class="card-body">
-                            <!-- Order Details -->
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <h6>Информация о доставке</h6>
@@ -115,7 +110,7 @@
                                         {% if order.delivery.code %}
                                             {% if order.delivery.code == 'courier' %}
                                                 Курьерская доставка
-                                            {% elseif order.delivery.code == 'pickup' %}
+                                            {% elseif order.delivery.code == 'self-delivery' %}
                                                 Самовывоз
                                             {% elseif order.delivery.code == 'post' %}
                                                 Почта России
@@ -162,7 +157,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Order Items -->
                             <h6>Товары в заказе</h6>
                             <div class="table-responsive">
                                 <table class="table table-sm">
@@ -207,29 +201,11 @@
                                     </tfoot>
                                 </table>
                             </div>
-                            
-                            <!-- Order Actions -->
-                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                <div>
-                                    {% if order.trackingNumber %}
-                                        <span class="text-muted">Трек-номер: <strong>{{ order.trackingNumber }}</strong></span>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    {% if order.status == 'delivered' %}
-                                        <button class="btn btn-outline-success btn-sm" onclick="leaveReview({{ order.id }})">
-                                            <i class="bi bi-star"></i>
-                                            Оставить отзыв
-                                        </button>
-                                    {% endif %}
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
             {% endfor %}
             
-            <!-- Pagination -->
             {% if pagination is defined and pagination.total_pages > 1 %}
                 <nav aria-label="Orders pagination" class="mt-4">
                     <ul class="pagination justify-content-center">
@@ -273,7 +249,6 @@
             {% endif %}
             
         {% else %}
-            <!-- No Orders -->
             <div class="text-center py-5">
                 <i class="bi bi-bag-x display-1 text-muted"></i>
                 <h3 class="mt-3">У вас пока нет заказов</h3>
@@ -291,7 +266,6 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle order details
     const toggleButtons = document.querySelectorAll('.toggle-order');
     toggleButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -308,7 +282,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Filters
     const statusFilter = document.getElementById('statusFilter');
     const periodFilter = document.getElementById('periodFilter');
     
@@ -320,12 +293,10 @@ document.addEventListener('DOMContentLoaded', function() {
         orderCards.forEach(card => {
             let showCard = true;
             
-            // Status filter
             if (selectedStatus && card.dataset.status !== selectedStatus) {
                 showCard = false;
             }
             
-            // Period filter
             if (selectedPeriod && showCard) {
                 const orderDate = new Date(card.dataset.date);
                 const now = new Date();
@@ -357,7 +328,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function leaveReview(orderId) {
-    // This would typically open a review modal or redirect to a review page
     alert('Функция оставления отзывов будет реализована в следующей версии');
 }
 </script>
