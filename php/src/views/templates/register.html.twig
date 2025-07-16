@@ -136,7 +136,6 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle password visibility
     function setupPasswordToggle(toggleId, inputId) {
         const toggle = document.getElementById(toggleId);
         const input = document.getElementById(inputId);
@@ -159,7 +158,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupPasswordToggle('togglePassword', 'password');
     setupPasswordToggle('toggleConfirmPassword', 'confirmPassword');
     
-    // Password strength checker
     const passwordInput = document.getElementById('password');
     const strengthBar = document.getElementById('passwordStrength');
     const strengthText = document.getElementById('passwordStrengthText');
@@ -212,7 +210,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Форматирование номера телефона при вводе
     const phoneInput = document.getElementById('phone');
     if (phoneInput) {
         phoneInput.addEventListener('input', function() {
@@ -231,7 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Добавляем обработчик submit для отправки JSON ---
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
         registerForm.addEventListener('submit', function(e) {
@@ -241,7 +237,6 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Регистрация...';
 
-            // Нормализация телефона к формату +7XXXXXXXXXX
             let rawPhone = document.getElementById('phone').value.replace(/\D/g, '');
             if (rawPhone.startsWith('8')) {
                 rawPhone = '7' + rawPhone.slice(1);
