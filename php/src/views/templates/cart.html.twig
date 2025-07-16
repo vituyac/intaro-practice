@@ -26,7 +26,6 @@
                 <div class="cart-item border-bottom p-3" data-item-id="{{ item.item_id }}">
                     <div class="row align-items-center">
                         <div class="col-md-2">
-                            {# Нет картинки, так как поле image отсутствует #}
                             <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 80px;">
                                 <i class="bi bi-image text-muted"></i>
                             </div>
@@ -79,7 +78,6 @@
     </div>
     
     <div class="col-lg-4">
-        <!-- Order Summary -->
         <div class="card shadow-sm">
             <div class="card-header">
                 <h5 class="mb-0">Итого</h5>
@@ -108,58 +106,10 @@
             </div>
         </div>
         
-        <!-- Promo Code -->
-        <div class="card shadow-sm mt-3">
-            <div class="card-header">
-                <h6 class="mb-0">Промокод</h6>
-            </div>
-            <div class="card-body">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Введите промокод" id="promoCode">
-                    <button class="btn btn-outline-secondary" type="button" id="applyPromoBtn">
-                        Применить
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Recommended Products -->
-        {% if recommended_products is defined and recommended_products %}
-        <div class="card shadow-sm mt-3">
-            <div class="card-header">
-                <h6 class="mb-0">Рекомендуем также</h6>
-            </div>
-            <div class="card-body">
-                {% for product in recommended_products %}
-                <div class="d-flex align-items-center mb-3">
-                    {% if product.image %}
-                        <img src="{{ product.image }}" class="me-3 rounded" alt="{{ product.name }}" style="width: 50px; height: 50px; object-fit: cover;">
-                    {% else %}
-                        <div class="me-3 bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                            <i class="bi bi-image text-muted"></i>
-                        </div>
-                    {% endif %}
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1 small">
-                            <a href="/offer?id={{ product.id }}" class="text-decoration-none">{{ product.name }}</a>
-                        </h6>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-primary fw-bold small">{{ product.price }} ₽</span>
-                            <button class="btn btn-outline-primary btn-sm add-to-cart" data-offer-id="{{ product.id }}">
-                                <i class="bi bi-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
     </div>
 </div>
 
 {% else %}
-<!-- Empty Cart -->
 <div class="row">
     <div class="col-12">
         <div class="text-center py-5">
@@ -179,7 +129,6 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Quantity change handlers
     const quantityBtns = document.querySelectorAll('.quantity-btn');
     const quantityInputs = document.querySelectorAll('.quantity-input');
     
@@ -215,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Remove item handlers
     const removeButtons = document.querySelectorAll('.remove-item');
     removeButtons.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -224,7 +172,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Clear cart handler
     const clearCartBtn = document.getElementById('clearCartBtn');
     if (clearCartBtn) {
         clearCartBtn.addEventListener('click', function() {
@@ -234,7 +181,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Add to cart for recommended products
     const addToCartButtons = document.querySelectorAll('.add-to-cart');
     addToCartButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -297,7 +243,6 @@ function updateCartItem(itemId, quantity) {
     .then(response => response.json())
     .then(data => {
         if (data.message) {
-            // Update item total
             const cartItem = document.querySelector(`[data-item-id="${itemId}"]`);
             const price = parseFloat(cartItem.querySelector('.fw-bold').textContent.replace(' ₽', ''));
             const itemTotal = cartItem.querySelector('.item-total');
@@ -323,7 +268,6 @@ function removeCartItem(itemId) {
     .then(response => response.json())
     .then(data => {
         if (data.message) {
-            // Remove item from DOM
             const cartItem = document.querySelector(`[data-item-id="${itemId}"]`);
             cartItem.remove();
             updateTotals();

@@ -27,7 +27,7 @@
                     </div>
                 {% endif %}
                 
-                <form id="registerForm" method="POST" action="/api/register">
+                <form id="registerForm">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="firstName" class="form-label">Имя *</label>
@@ -106,57 +106,11 @@
                         </div>
                     </div>
                     
-                    <!-- Password strength indicator -->
                     <div class="mb-3">
                         <div class="progress" style="height: 5px;">
                             <div class="progress-bar" id="passwordStrength" role="progressbar" style="width: 0%"></div>
                         </div>
                         <small class="form-text" id="passwordStrengthText"></small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="birthDate" class="form-label">Дата рождения</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-calendar"></i>
-                            </span>
-                            <input type="date" class="form-control" id="birthDate" name="birthDate" value="{{ birthDate|default('') }}">
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="gender" class="form-label">Пол</label>
-                        <select class="form-select" id="gender" name="gender">
-                            <option value="">Не указан</option>
-                            <option value="male" {% if gender == 'male' %}selected{% endif %}>Мужской</option>
-                            <option value="female" {% if gender == 'female' %}selected{% endif %}>Женский</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="address" class="form-label">Адрес доставки</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-geo-alt"></i>
-                            </span>
-                            <textarea class="form-control" id="address" name="address" rows="2" 
-                                      placeholder="Введите ваш адрес">{{ address|default('') }}</textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="agreeTerms" name="agreeTerms" required>
-                        <label class="form-check-label" for="agreeTerms">
-                            Я согласен с <a href="/terms" target="_blank" class="text-decoration-none">условиями использования</a> 
-                            и <a href="/privacy" target="_blank" class="text-decoration-none">политикой конфиденциальности</a> *
-                        </label>
-                    </div>
-                    
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="newsletter" name="newsletter">
-                        <label class="form-check-label" for="newsletter">
-                            Подписаться на новости и специальные предложения
-                        </label>
                     </div>
                     
                     <div class="d-grid mb-3">
@@ -257,130 +211,107 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         }
     }
-    
-    // Phone number formatting
+
+    // Форматирование номера телефона при вводе
     const phoneInput = document.getElementById('phone');
-    phoneInput.addEventListener('input', function() {
-        let value = this.value.replace(/\D/g, '');
-        if (value.startsWith('8')) {
-            value = '7' + value.slice(1);
-        }
-        if (value.startsWith('7') && value.length <= 11) {
-            value = value.replace(/^7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 ($1) $2-$3-$4');
-            value = value.replace(/^7(\d{3})(\d{3})(\d{2})$/, '+7 ($1) $2-$3');
-            value = value.replace(/^7(\d{3})(\d{3})$/, '+7 ($1) $2');
-            value = value.replace(/^7(\d{3})$/, '+7 ($1');
-            value = value.replace(/^7(\d{1,3})$/, '+7 ($1');
-        }
-        this.value = value;
-    });
-    
-    // Form validation
-    const registerForm = document.getElementById('registerForm');
-    const confirmPasswordInput = document.getElementById('confirmPassword');
-    
-    confirmPasswordInput.addEventListener('input', function() {
-        const password = passwordInput.value;
-        const confirmPassword = this.value;
-        
-        if (password !== confirmPassword) {
-            this.setCustomValidity('Пароли не совпадают');
-        } else {
-            this.setCustomValidity('');
-        }
-    });
-    
-    // Form submission
-    registerForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        
-        // Show loading state
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Регистрация...';
-        
-        // --- Normalize phone number before sending ---
-        const phoneInput = document.getElementById('phone');
-        let rawPhone = '';
-        if (phoneInput && phoneInput.value) {
-            rawPhone = phoneInput.value.replace(/[^\d+]/g, '');
-            if (rawPhone.startsWith('8')) {
-                rawPhone = '+7' + rawPhone.slice(1);
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.startsWith('8')) {
+                value = '7' + value.slice(1);
             }
-            if (rawPhone.startsWith('7') && !rawPhone.startsWith('+7')) {
-                rawPhone = '+7' + rawPhone.slice(1);
+            if (value.startsWith('7') && value.length <= 11) {
+                value = value.replace(/^7(\d{3})(\d{3})(\d{2})(\d{2})$/, '+7 ($1) $2-$3-$4');
+                value = value.replace(/^7(\d{3})(\d{3})(\d{2})$/, '+7 ($1) $2-$3');
+                value = value.replace(/^7(\d{3})(\d{3})$/, '+7 ($1) $2');
+                value = value.replace(/^7(\d{3})$/, '+7 ($1');
+                value = value.replace(/^7(\d{1,3})$/, '+7 ($1');
             }
-        }
-        // --- End normalization ---
-        
-        // Collect form data as JSON
-        const data = {
-            firstName: document.getElementById('firstName').value,
-            lastName: document.getElementById('lastName').value,
-            email: document.getElementById('email').value,
-            phone: rawPhone,
-            password: document.getElementById('password').value,
-            confirm: document.getElementById('confirmPassword').value
-        };
-        
-        fetch('/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(async response => {
-            if (response.status === 200) {
-                // Пытаемся распарсить JSON, если есть тело
-                const text = await response.text();
-                if (text) {
-                    try {
-                        const data = JSON.parse(text);
-                        if (data && data.success) {
-                            const successDiv = document.createElement('div');
-                            successDiv.className = 'alert alert-success';
-                            successDiv.innerHTML = '<i class="bi bi-check-circle"></i> Регистрация успешна! Перенаправление...';
-                            registerForm.insertBefore(successDiv, registerForm.firstChild);
-                            setTimeout(() => {
-                                window.location.href = '/login?registered=1';
-                            }, 2000);
-                            return;
-                        } else if (data && (data.error || data.message)) {
-                            throw new Error(data.error || data.message);
-                        }
-                    } catch (e) {
-                        // Не JSON, но статус 200 — считаем успехом
-                    }
-                }
-                // Пустой ответ, но статус 200 — считаем успехом
-                const successDiv = document.createElement('div');
-                successDiv.className = 'alert alert-success';
-                successDiv.innerHTML = '<i class="bi bi-check-circle"></i> Регистрация успешна! Перенаправление...';
-                registerForm.insertBefore(successDiv, registerForm.firstChild);
-                setTimeout(() => {
-                    window.location.href = '/login?registered=1';
-                }, 2000);
-                return;
-            }
-            // Если не 200 — ошибка
-            throw new Error('Некорректный ответ сервера');
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            // Show error message
-            let errorDiv = document.querySelector('.alert-danger');
-            if (!errorDiv) {
-                errorDiv = document.createElement('div');
-                errorDiv.className = 'alert alert-danger';
-                registerForm.insertBefore(errorDiv, registerForm.firstChild);
-            }
-            errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + error.message;
-            // Reset button
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
+            this.value = value;
         });
-    });
+    }
+
+    // --- Добавляем обработчик submit для отправки JSON ---
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Регистрация...';
+
+            // Нормализация телефона к формату +7XXXXXXXXXX
+            let rawPhone = document.getElementById('phone').value.replace(/\D/g, '');
+            if (rawPhone.startsWith('8')) {
+                rawPhone = '7' + rawPhone.slice(1);
+            }
+            if (!rawPhone.startsWith('7')) {
+                rawPhone = '7' + rawPhone;
+            }
+            const phone = '+'.concat(rawPhone);
+
+            const data = {
+                firstName: (document.getElementById('firstName').value || '').trim(),
+                lastName: (document.getElementById('lastName').value || '').trim(),
+                email: (document.getElementById('email').value || '').trim(),
+                phone: phone,
+                password: (document.getElementById('password').value || ''),
+                confirm: (document.getElementById('confirmPassword').value || '')
+            };
+            console.log('Отправляемые данные регистрации:', data);
+
+            fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(async response => {
+                if (response.status === 200) {
+                    const text = await response.text();
+                    if (text) {
+                        try {
+                            const data = JSON.parse(text);
+                            if (data && data.success) {
+                                const successDiv = document.createElement('div');
+                                successDiv.className = 'alert alert-success';
+                                successDiv.innerHTML = '<i class="bi bi-check-circle"></i> Регистрация успешна! Перенаправление...';
+                                registerForm.insertBefore(successDiv, registerForm.firstChild);
+                                setTimeout(() => {
+                                    window.location.href = '/login?registered=1';
+                                }, 2000);
+                                return;
+                            } else if (data && (data.error || data.message)) {
+                                throw new Error(data.error || data.message);
+                            }
+                        } catch (e) {
+                        }
+                    }
+                    const successDiv = document.createElement('div');
+                    successDiv.className = 'alert alert-success';
+                    successDiv.innerHTML = '<i class="bi bi-check-circle"></i> Регистрация успешна! Перенаправление...';
+                    registerForm.insertBefore(successDiv, registerForm.firstChild);
+                    setTimeout(() => {
+                        window.location.href = '/login?registered=1';
+                    }, 2000);
+                    return;
+                }
+                throw new Error('Некорректный ответ сервера');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                let errorDiv = document.querySelector('.alert-danger');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-danger';
+                    registerForm.insertBefore(errorDiv, registerForm.firstChild);
+                }
+                errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + error.message;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+        });
+    }
 });
 </script>
 {% endblock %}

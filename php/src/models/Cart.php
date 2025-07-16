@@ -5,7 +5,8 @@ namespace App\models;
 use App\core\Database;
 use PDO;
 
-class Cart {
+class Cart
+{
     /**
      * @param int $userId
      * @return [{
@@ -19,7 +20,7 @@ class Cart {
         $param = [$userId];
         $pdo = Database::connect();
         $query = $pdo->prepare($sql);
-        $query->execute($param); 
+        $query->execute($param);
         return $query->fetchAll() ?: [];
     }
 
@@ -53,10 +54,10 @@ class Cart {
         int $offer_id,
         int $quantity = 1,
         ?float $price = null
-    ): bool {
+    ) {
         $pdo = Database::connect();
 
-        if (empty($price)){
+        if (empty($price)) {
             $price_sql = "SELECT price FROM offers WHERE id = ?";
             $price_param = [$offer_id];
             $price_query = $pdo->prepare($price_sql);
@@ -64,9 +65,23 @@ class Cart {
             $price = $price_query->fetch()["price"];
         }
 
-        $sql = "INSERT INTO cart (user_id, offer_id, quantity, price) VALUES (?, ?, ?, ?)";
-        $params = [$userId, $offer_id, $quantity, $price];
-        return $pdo->prepare($sql )->execute($params);
+        // Проверяем, есть ли уже такой товар в корзине
+        $checkSql = "SELECT id, quantity FROM cart WHERE user_id = ? AND offer_id = ?";
+        $checkStmt = $pdo->prepare($checkSql);
+        $checkStmt->execute([$userId, $offer_id]);
+        $existing = $checkStmt->fetch();
+
+        if ($existing) {
+            // Если есть — увеличиваем количество
+            $updateSql = "UPDATE cart SET quantity = quantity + ? WHERE id = ?";
+            $updateStmt = $pdo->prepare($updateSql);
+            return $updateStmt->execute([$quantity, $existing['id']]);
+        } else {
+            // Если нет — обычный insert
+            $sql = "INSERT INTO cart (user_id, offer_id, quantity, price) VALUES (?, ?, ?, ?)";
+            $params = [$userId, $offer_id, $quantity, $price];
+            return $pdo->prepare($sql)->execute($params);
+        }
     }
 
     /**
@@ -75,7 +90,7 @@ class Cart {
      */
     static function removeCartItem(
         int $item_id
-    ): bool{
+    ): bool {
         $pdo = Database::connect();
 
         $sql = "DELETE FROM cart WHERE id = ?";
@@ -93,21 +108,22 @@ class Cart {
         int $item_id,
         ?int $quantity,
         ?float $price
-    ): bool{
-        if (empty($quantity) && empty($price)) return True;
+    ): bool {
+        if (empty($quantity) && empty($price))
+            return True;
         $sql = "UPDATE cart SET ";
-        
+
         $fields = [];
         $params = [];
-        if (!empty($quantity)){
+        if (!empty($quantity)) {
             $fields[] = "quantity=?";
             $params[] = $quantity;
         }
-        if (!empty($price)){
+        if (!empty($price)) {
             $fields[] = "price=?";
             $params[] = $price;
         }
-        $params[]=$item_id;
+        $params[] = $item_id;
         $sql .= implode(", ", $fields) . " WHERE id=?";
 
         $pdo = Database::connect();
@@ -119,7 +135,8 @@ class Cart {
      * @param int $userId Пользователь, для которого трогаем корзину
      * @return bool Результат операции
      **/
-    static function clearCart(int $user_id): bool{
+    static function clearCart(int $user_id): bool
+    {
         $sql = "DELETE FROM cart WHERE user_id = ?";
         $param = [$user_id];
         $pdo = Database::connect();

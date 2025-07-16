@@ -3,7 +3,6 @@
 {% block title %}Главная - Интернет-магазин{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <div class="row mb-5">
     <div class="col-12">
         <div class="bg-primary text-white p-5 rounded">
@@ -24,7 +23,6 @@
     </div>
 </div>
 
-<!-- Features Section -->
 <div class="row mb-5">
     <div class="col-12">
         <h2 class="text-center mb-4">Почему выбирают нас?</h2>
@@ -58,33 +56,6 @@
     </div>
 </div>
 
-<!-- Popular Categories -->
-{% if sections is defined and sections %}
-<div class="row mb-5">
-    <div class="col-12">
-        <h2 class="text-center mb-4">Популярные категории</h2>
-    </div>
-    {% for section in sections %}
-        {% if section.parentId is empty %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card border-0 shadow-sm product-card">
-                    <div class="card-body text-center">
-                        <i class="bi bi-grid display-4 text-primary mb-3"></i>
-                        <h5 class="card-title">{{ section.name }}</h5>
-                        <p class="card-text text-muted">{{ section.description|default('Широкий выбор товаров в категории') }}</p>
-                        <a href="/section?id={{ section.id }}" class="btn btn-outline-primary">
-                            Перейти в категорию
-                            <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-    {% endfor %}
-</div>
-{% endif %}
-
-<!-- Call to Action -->
 <div class="row">
     <div class="col-12">
         <div class="bg-light p-4 rounded text-center">

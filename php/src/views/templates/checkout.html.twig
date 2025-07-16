@@ -16,7 +16,6 @@
 <form id="checkoutForm" method="POST" action="/api/cart/making-an-order">
     <div class="row">
         <div class="col-lg-8">
-            <!-- Customer Information -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
@@ -59,7 +58,6 @@
                 </div>
             </div>
             
-            <!-- Delivery Information -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
@@ -97,7 +95,6 @@
                 </div>
             </div>
             
-            <!-- Payment Information -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
@@ -120,7 +117,6 @@
                 </div>
             </div>
             
-            <!-- Additional Information -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
@@ -147,13 +143,11 @@
         </div>
         
         <div class="col-lg-4">
-            <!-- Order Summary -->
             <div class="card shadow-sm sticky-top" style="top: 20px;">
                 <div class="card-header">
                     <h5 class="mb-0">Ваш заказ</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Cart Items -->
                     <div class="mb-3">
                         {% for item in cart_items %}
                             <div class="d-flex align-items-center mb-2">
@@ -168,7 +162,6 @@
                     
                     <hr>
                     
-                    <!-- Order Totals -->
                     <div class="d-flex justify-content-between mb-2">
                         <span>Товары:</span>
                         <span id="subtotal">{{ cart_total }} ₽</span>
@@ -202,7 +195,6 @@
                 </div>
             </div>
             
-            <!-- Security Info -->
             <div class="card shadow-sm mt-3">
                 <div class="card-body text-center">
                     <i class="bi bi-shield-lock display-4 text-success mb-2"></i>
@@ -217,7 +209,6 @@
 </form>
 
 {% else %}
-<!-- Empty Cart -->
 <div class="row">
     <div class="col-12">
         <div class="text-center py-5">
@@ -237,7 +228,6 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Phone number formatting
     const phoneInput = document.getElementById('phone');
     if (phoneInput) {
         phoneInput.addEventListener('input', function() {
@@ -256,7 +246,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Delivery cost calculation
     const deliverySelect = document.getElementById('deliveryType');
     const deliveryCostSpan = document.getElementById('deliveryCost');
     const totalCostSpan = document.getElementById('totalCost');
@@ -278,7 +267,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Form submission
     const checkoutForm = document.getElementById('checkoutForm');
     if (checkoutForm) {
         checkoutForm.addEventListener('submit', function(e) {
@@ -288,10 +276,17 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Оформление заказа...';
 
-            // Собираем данные формы вручную для JSON
+            let rawPhone = document.getElementById('phone').value.replace(/\D/g, '');
+            if (rawPhone.startsWith('8')) {
+                rawPhone = '7' + rawPhone.slice(1);
+            }
+            if (!rawPhone.startsWith('7')) {
+                rawPhone = '7' + rawPhone;
+            }
+            const phone = '+'.concat(rawPhone);
             const data = {
                 id: '{{ user.id|default("") }}',
-                phone: document.getElementById('phone').value,
+                phone: phone,
                 address: document.getElementById('deliveryAddress').value,
                 paymentType: document.getElementById('paymentType').value,
                 deliveryType: document.getElementById('deliveryType').value
@@ -326,7 +321,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Load delivery and payment types
     loadDeliveryTypes();
     loadPaymentTypes();
 });
@@ -338,12 +332,10 @@ function loadDeliveryTypes() {
             if (data.success && data.deliveryTypes) {
                 const select = document.getElementById('deliveryType');
                 if (select) {
-                    // Clear existing options except the first one
                     while (select.children.length > 1) {
                         select.removeChild(select.lastChild);
                     }
                     
-                    // Add delivery types
                     data.deliveryTypes.forEach(delivery => {
                         const option = document.createElement('option');
                         option.value = delivery.code;
@@ -369,12 +361,10 @@ function loadPaymentTypes() {
             if (data.success && data.paymentTypes) {
                 const select = document.getElementById('paymentType');
                 if (select) {
-                    // Clear existing options except the first one
                     while (select.children.length > 1) {
                         select.removeChild(select.lastChild);
                     }
                     
-                    // Add payment types
                     data.paymentTypes.forEach(payment => {
                         const option = document.createElement('option');
                         option.value = payment.code;
