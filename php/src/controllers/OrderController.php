@@ -144,6 +144,60 @@ class OrderController
         }
     }
 
+    public function checkout()
+    {
+        $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../views/templates');
+        $twig = new \Twig\Environment($loader);
+        $user = null;
+        if (isset($_SESSION['user_id'])) {
+            $userModel = new \App\models\User();
+            $user = $userModel->getUserById($_SESSION['user_id']);
+        }
+        $sectionsModel = new \App\models\Section();
+        $sections = $sectionsModel->getAll();
+        $cartItems = [];
+        if (isset($_SESSION['user_id'])) {
+            $cartModel = new \App\models\Cart();
+            $cartItems = $cartModel->getUserCartItemList($_SESSION['user_id']);
+        }
+        $cartTotal = 0;
+        foreach ($cartItems as $item) {
+            $cartTotal += $item['price'] * $item['quantity'];
+        }
+        $crmData = null;
+        if ($user && isset($user['id'])) {
+            $crm = new \App\Services\RetailCrmService();
+            $crmData = $userModel->getCrmData($user['id'], $crm);
+        }
+        $crm = new \App\Services\RetailCrmService();
+        $deliveryTypes = $crm->deliveryTypes();
+        $paymentTypes = $crm->paymentTypes();
+        echo $twig->render('checkout.html.twig', [
+            'user' => $user,
+            'sections' => $sections,
+            'cart_items' => $cartItems,
+            'cart_total' => $cartTotal,
+            'crmData' => $crmData,
+            'delivery_types' => $deliveryTypes,
+            'payment_types' => $paymentTypes
+        ]);
+    }
+
+    public function orderSuccess()
+    {
+        $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../views/templates');
+        $twig = new \Twig\Environment($loader);
+        $user = null;
+        if (isset($_SESSION['user_id'])) {
+            $userModel = new \App\models\User();
+            $user = $userModel->getUserById($_SESSION['user_id']);
+        }
+        echo $twig->render('order_success.html.twig', [
+            'user' => $user,
+            'order_id' => $_GET['order_id'] ?? null
+        ]);
+    }
+
 }
 
 ?>

@@ -24,14 +24,13 @@ class SectionController
         }
 
         $sectionId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
-        $perPage = isset($_GET['per_page']) ? max(1, min(50, (int) $_GET['per_page'])) : 20;
-
         if ($sectionId <= 0) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Invalid section ID']);
+            header('Location: /section?id=1');
             exit();
         }
+
+        $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+        $perPage = isset($_GET['per_page']) ? max(1, min(50, (int) $_GET['per_page'])) : 20;
 
         $section = $this->sectionModel->getById($sectionId);
         if (!$section) {
@@ -69,6 +68,10 @@ class SectionController
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $sectionId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+            if ($sectionId <= 0) {
+                header('Location: /section?id=1');
+                exit();
+            }
             $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
             $perPage = isset($_GET['per_page']) ? max(1, min(50, (int) $_GET['per_page'])) : 20;
             $user = null;
@@ -84,7 +87,7 @@ class SectionController
             $offers = $this->offerModel->getBySection($sectionId, $perPage, $offset);
             $totalOffers = $this->offerModel->getCountBySection($sectionId);
             $totalPages = ceil($totalOffers / $perPage);
-            
+
             $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../views/templates');
             $twig = new \Twig\Environment($loader);
 
