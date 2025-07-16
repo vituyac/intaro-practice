@@ -47,7 +47,8 @@
     
     <!-- Product Info -->
     <div class="col-md-6">
-        <h1 class="mb-3">{{ offer.name }}</h1>
+        <h1 class="mb-3">{{ product.brand }}</h1>
+        <h1 class="mb-3">{{ product.model }}</h1>
         
         <!-- Price -->
         <div class="mb-4">
@@ -78,10 +79,10 @@
         </div>
         
         <!-- Description -->
-        {% if offer.description %}
+        {% if product.description %}
             <div class="mb-4">
                 <h5>Описание</h5>
-                <p class="text-muted">{{ offer.description }}</p>
+                <p class="text-muted">{{ product.description }}</p>
             </div>
         {% endif %}
         

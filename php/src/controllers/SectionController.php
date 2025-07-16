@@ -15,10 +15,6 @@ class SectionController
         $this->offerModel = new Offer();
     }
 
-    // GET /section?id=1&page=1&per_page=20
-    // id - id раздела
-    // page - номер страницы 
-    // per_page - количество товаров на странице
     public function showSection(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
@@ -37,7 +33,6 @@ class SectionController
             exit();
         }
 
-        // Получаем информацию о разделе
         $section = $this->sectionModel->getById($sectionId);
         if (!$section) {
             http_response_code(404);
@@ -45,10 +40,8 @@ class SectionController
             exit();
         }
 
-        // Получаем дочерние разделы
         $children = $this->sectionModel->getChildren($sectionId);
 
-        // Получаем товары раздела с пагинацией
         $offset = ($page - 1) * $perPage;
         $offers = $this->offerModel->getBySection($sectionId, $perPage, $offset);
         $totalOffers = $this->offerModel->getCountBySection($sectionId);
@@ -79,18 +72,22 @@ class SectionController
             $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
             $perPage = isset($_GET['per_page']) ? max(1, min(50, (int) $_GET['per_page'])) : 20;
             $user = null;
+
             if (isset($_SESSION['user_id'])) {
                 $userModel = new \App\models\User();
                 $user = $userModel->getUserById($_SESSION['user_id']);
             }
+
             $section = $this->sectionModel->getById($sectionId);
             $children = $this->sectionModel->getChildren($sectionId);
             $offset = ($page - 1) * $perPage;
             $offers = $this->offerModel->getBySection($sectionId, $perPage, $offset);
             $totalOffers = $this->offerModel->getCountBySection($sectionId);
             $totalPages = ceil($totalOffers / $perPage);
+            
             $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../views/templates');
             $twig = new \Twig\Environment($loader);
+
             echo $twig->render('section.html.twig', [
                 'user' => $user,
                 'section' => $section,

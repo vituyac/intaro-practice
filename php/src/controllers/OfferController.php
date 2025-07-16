@@ -15,8 +15,6 @@ class OfferController
         $this->productModel = new Product();
     }
 
-    // GET /offer?id=1
-    // id - id предложения
     public function showOffer(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
@@ -33,7 +31,6 @@ class OfferController
             exit();
         }
 
-        // Получаем информацию о предложении
         $offer = $this->offerModel->getById($offerId);
         if (!$offer) {
             http_response_code(404);
@@ -41,7 +38,6 @@ class OfferController
             exit();
         }
 
-        // Получаем информацию о товаре
         $product = $this->productModel->getById($offer['product_id']);
         if (!$product) {
             http_response_code(404);
@@ -49,7 +45,6 @@ class OfferController
             exit();
         }
 
-        // Получаем все предложения этого товара, кроме текущего предложения
         $relatedOffers = array_filter(
             $this->offerModel->getByProduct($offer['product_id']),
             function ($relatedOffer) use ($offerId) {
@@ -99,6 +94,7 @@ class OfferController
                 $userModel = new \App\models\User();
                 $user = $userModel->getUserById($_SESSION['user_id']);
             }
+
             $offerId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
             $offer = $this->offerModel->getById($offerId);
             if (!$offer) {
@@ -106,6 +102,7 @@ class OfferController
                 echo 'Offer not found';
                 exit();
             }
+
             $product = $this->productModel->getById($offer['product_id']);
             $relatedOffers = array_filter(
                 $this->offerModel->getByProduct($offer['product_id']),
@@ -113,6 +110,7 @@ class OfferController
                     return $relatedOffer['id'] != $offerId;
                 }
             );
+            
             $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../views/templates');
             $twig = new \Twig\Environment($loader);
             echo $twig->render('offer.html.twig', [
