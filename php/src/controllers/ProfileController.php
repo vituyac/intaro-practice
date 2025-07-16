@@ -87,7 +87,6 @@ class ProfileController
             'birthday' => $_POST['birthday'] ?? '',
             'address' => ['text' => $_POST['address'] ?? '']
         ];
-
         $success = $this->userModel->updateCrmData($userId, $data, $this->crm);
 
         if ($success) {

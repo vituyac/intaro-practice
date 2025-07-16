@@ -19,11 +19,8 @@ class UserController
 
     public function register(): void
     {
-        // DEBUG LOGGING: mark controller entry and input
-        file_put_contents('/tmp/php_register_debug.log', "\n==== REGISTER CONTROLLER CALLED ====\n", FILE_APPEND);
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input = json_decode(file_get_contents('php://input'), true);
-            file_put_contents('/tmp/php_register_debug.log', "INPUT:\n" . print_r($input, true), FILE_APPEND);
 
             $errors = FormValidator::validateRegister($input);
             if ($errors) {
@@ -49,7 +46,7 @@ class UserController
             if ($userId) {
                 $srm_id = $this->srm->registerUser($userId, $email, $firstName, $lastName, null, $phone, null, null);
                 if ($srm_id) {
-                    $this->userModel->setExternalID($userId, $userId);
+                    $this->userModel->setExternalID($userId, $srm_id);
                     http_response_code(200);
                     echo json_encode(['success' => true]);
                     exit();

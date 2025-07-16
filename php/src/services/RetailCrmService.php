@@ -81,10 +81,16 @@ class RetailCrmService
             $customerData['phones'] = [['number' => $rawPhone]];
             unset($customerData['phone']);
         }
+        
+        if (empty($customerData['birthday'])) {
+            unset($customerData['birthday']);
+        }
+
         // Передача пола
         if (isset($customerData['sex'])) {
             $customerData['sex'] = $customerData['sex']; // Просто передаём, CRM ожидает строку
         }
+
         $data = $this->request(self::CUSTOMER_UPDATE . $externalId . '/edit', [
             'customer' => json_encode(array_merge(
                 ['externalId' => (string) $externalId],
@@ -191,22 +197,13 @@ class RetailCrmService
             $customer['birthday'] = $birthday;
         if (!empty($sex))
             $customer['sex'] = $sex;
-        // --- DEBUG LOGGING ---
-        file_put_contents('/tmp/crm_register_debug.log', "\n==== NEW REGISTER ATTEMPT ====" . PHP_EOL, FILE_APPEND);
-        file_put_contents('/tmp/crm_register_debug.log', "CUSTOMER DATA:\n" . print_r($customer, true), FILE_APPEND);
-        // --- END DEBUG LOGGING ---
 
         $data = $this->request(self::CUSTOMER_CREATE, [
             'customer' => json_encode($customer, JSON_UNESCAPED_UNICODE),
             'site' => 'magazin-tekhniki'
         ], true);
-
-        // --- DEBUG LOGGING ---
-        file_put_contents('/tmp/crm_register_debug.log', "RESPONSE:\n" . print_r($data, true) . "\n", FILE_APPEND);
-        // --- END DEBUG LOGGING ---
-
+        print_r($data);
         $resultId = (($data['success'] ?? false) && isset($data['id'])) ? (int) $data['id'] : null;
-        file_put_contents('/tmp/crm_register_debug.log', "RETURNED ID: " . print_r($resultId, true) . "\n", FILE_APPEND);
         return $resultId;
     }
 

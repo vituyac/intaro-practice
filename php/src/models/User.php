@@ -50,20 +50,12 @@ class User
 
     public function getCrmData(int $userId, RetailCrmService $crmService): ?array
     {
-        $externalId = $this->getExternalId($userId);
-        if (!$externalId)
-            return null;
-
-        return $crmService->getCrmUser($externalId);
+        return $crmService->getCrmUser($userId);
     }
 
     public function updateCrmData(int $userId, array $data, RetailCrmService $crmService): bool
     {
-        $externalId = $this->getExternalId($userId);
-        if (!$externalId)
-            return false;
-
-        $response = $crmService->updateCustomer($externalId, $data);
+        $response = $crmService->updateCustomer($userId, $data);
         return $response['success'] ?? false;
     }
 }
