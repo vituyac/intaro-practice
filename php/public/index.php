@@ -62,8 +62,8 @@ $router->get('/orders', [$profile, 'showOrders']);
 
 $router->get('/icml', [$pageController, 'icml']);
 $router->get('/', [$pageController, 'index']);
-$router->get('/checkout', [$pageController, 'checkout']);
-$router->get('/order-success', [$pageController, 'orderSuccess']);
+$router->get('/checkout', [$order, 'checkout']);
+$router->get('/order-success', [$order, 'orderSuccess']);
 
 $router->get('/cart', [$cart, 'showCartPage']);
 $router->resolve();
