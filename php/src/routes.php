@@ -24,6 +24,8 @@ $userModel = new User();
 $auth = new Auth();
 $profile = new ProfileController($crm, $userModel, $auth);
 
+$pageController = new \App\controllers\PageController();
+
 $router->get('/api/delivery-types', [$retailCrm, 'deliveryTypes']);
 $router->get('/api/payment-types', [$retailCrm, 'paymentTypes']);
 $router->post('/api/cart/making-an-order', [$order, 'pushOrderCrm']);
@@ -32,7 +34,7 @@ $router->post('/api/register', [$users, 'register']);
 $router->post('/api/login', [$users, 'login']);
 $router->get('/api/logout', [$users, 'logout']);
 
-$router->get('/section', [$sections, 'showSection']);
+$router->get('/section', [$sections, 'showSectionPage']);
 $router->get('/offer', [$offers, 'showOffer']);
 
 $router->get('/api/cart', [$cart, 'getCartItem']);
@@ -49,95 +51,15 @@ $router->post('/profile', [$profile, 'updateProfile']);
 
 $router->get('/orders', [$profile, 'showOrders']);
 
-$router->get('/icml', function () {
-    require __DIR__ . '/../public/icml.php';
-});
-$router->get('/', function () {
-    $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/views/templates');
-    $twig = new \Twig\Environment($loader);
-    $user = null;
-    if (isset($_SESSION['user_id'])) {
-        $userModel = new \App\models\User();
-        $user = $userModel->getUserById($_SESSION['user_id']);
-    }
-    $sectionsModel = new Section();
-    $sections = $sectionsModel->getAll();
-    echo $twig->render('index.html.twig', ['user' => $user, 'sections' => $sections]);
-});
+$router->get('/icml', [$pageController, 'icml']);
+$router->get('/', [$pageController, 'index']);
+$router->get('/checkout', [$pageController, 'checkout']);
+$router->get('/order-success', [$pageController, 'orderSuccess']);
 
 $router->get('/cart', [$cart, 'showCartPage']);
 
-$router->get('/checkout', function () {
-    $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/views/templates');
-    $twig = new \Twig\Environment($loader);
-    $user = null;
-    if (isset($_SESSION['user_id'])) {
-        $userModel = new \App\models\User();
-        $user = $userModel->getUserById($_SESSION['user_id']);
-    }
-    $sectionsModel = new Section();
-    $sections = $sectionsModel->getAll();
-
-    $cartItems = [];
-    if (isset($_SESSION['user_id'])) {
-        $cartModel = new \App\models\Cart();
-        $cartItems = $cartModel->getUserCartItemList($_SESSION['user_id']);
-    }
-
-    $cartTotal = 0;
-    foreach ($cartItems as $item) {
-        $cartTotal += $item['price'] * $item['quantity'];
-    }
-
-    $crmData = null;
-    if ($user && isset($user['id'])) {
-        $crm = new \App\Services\RetailCrmService();
-        $crmData = $userModel->getCrmData($user['id'], $crm);
-    }
-
-    $crm = new \App\Services\RetailCrmService();
-    $deliveryTypes = $crm->deliveryTypes();
-    $paymentTypes = $crm->paymentTypes();
-
-    echo $twig->render('checkout.html.twig', [
-        'user' => $user,
-        'sections' => $sections,
-        'cart_items' => $cartItems,
-        'cart_total' => $cartTotal,
-        'crmData' => $crmData,
-        'delivery_types' => $deliveryTypes,
-        'payment_types' => $paymentTypes
-    ]);
-});
-
-$router->get('/profile', [new \App\controllers\ProfileController($crm, $userModel, $auth), 'showProfile']);
-
-$router->get('/profile/orders', [new \App\controllers\ProfileController($crm, $userModel, $auth), 'showOrders']);
-
-$router->get('/register', [new \App\controllers\UserController(), 'showRegisterForm']);
-
-$router->get('/login', [new \App\controllers\UserController(), 'showLoginForm']);
-
-$router->get('/section', [new \App\controllers\SectionController(), 'showSectionPage']);
-
-$router->get('/offer', [new \App\controllers\OfferController(), 'showOfferPage']);
-
-$router->get('/order-success', function () {
-    $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/views/templates');
-    $twig = new \Twig\Environment($loader);
-    $user = null;
-    if (isset($_SESSION['user_id'])) {
-        $userModel = new \App\models\User();
-        $user = $userModel->getUserById($_SESSION['user_id']);
-    }
-    echo $twig->render('order_success.html.twig', [
-        'user' => $user,
-        'order_id' => $_GET['order_id'] ?? null
-    ]);
-});
-
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_SERVER['REQUEST_URI'] === '/' || $_SERVER['REQUEST_URI'] === '/index.php')) {
-    $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/views/templates');
+    $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../views/templates');
     $twig = new \Twig\Environment($loader);
     $user = null;
     if (isset($_SESSION['user_id'])) {

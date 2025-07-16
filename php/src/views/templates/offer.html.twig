@@ -120,9 +120,6 @@
         <div class="mb-4">
             <h6>Поделиться:</h6>
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="shareProduct('vk')">
-                    <i class="bi bi-share"></i> VK
-                </button>
                 <button type="button" class="btn btn-outline-secondary btn-sm" onclick="shareProduct('telegram')">
                     <i class="bi bi-telegram"></i> Telegram
                 </button>
@@ -265,9 +262,6 @@ function shareProduct(platform) {
     
     let shareUrl;
     switch(platform) {
-        case 'vk':
-            shareUrl = `https://vk.com/share.php?url=${url}&title=${title}`;
-            break;
         case 'telegram':
             shareUrl = `https://t.me/share/url?url=${url}&text=${title}`;
             break;

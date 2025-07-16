@@ -19,7 +19,52 @@ session_start();
 
 $router = new Router();
 
-require __DIR__ . '/../src/routes.php';
+$retailCrm = new RetailCrmController();
+$order = new OrderController();
+$users = new UserController();
+$sections = new SectionController();
+$offers = new OfferController();
+$cart = new CartController();
+$mocker = new MockController();
+$crm = new RetailCrmService();
+$userModel = new User();
+$auth = new Auth();
+$profile = new ProfileController($crm, $userModel, $auth);
 
+$pageController = new \App\controllers\PageController();
+
+$router->get('/api/delivery-types', [$retailCrm, 'deliveryTypes']);
+$router->get('/api/payment-types', [$retailCrm, 'paymentTypes']);
+$router->post('/api/cart/making-an-order', [$order, 'pushOrderCrm']);
+
+$router->post('/api/register', [$users, 'register']);
+$router->post('/api/login', [$users, 'login']);
+$router->get('/api/logout', [$users, 'logout']);
+$router->get('/register', [$users, 'showRegisterForm']);
+$router->get('/login', [$users, 'showLoginForm']);
+
+$router->get('/section', [$sections, 'showSectionPage']);
+$router->get('/offer', [$offers, 'showOfferPage']);
+
+$router->get('/api/cart', [$cart, 'getCartItem']);
+$router->post('/api/cart', [$cart, 'addCartItem']);
+$router->put('/api/cart', [$cart, 'changeCartItem']);
+$router->delete('/api/cart', [$cart, 'removeCartItem']);
+$router->delete('/api/clear-cart', [$cart, 'clearCart']);
+
+$router->get('/mock/login', [$mocker, 'mockLogin']);
+$router->get('/mock/check-login', [$mocker, 'checkUser']);
+
+$router->get('/profile', [$profile, 'showProfile']);
+$router->post('/profile', [$profile, 'updateProfile']);
+
+$router->get('/orders', [$profile, 'showOrders']);
+
+$router->get('/icml', [$pageController, 'icml']);
+$router->get('/', [$pageController, 'index']);
+$router->get('/checkout', [$pageController, 'checkout']);
+$router->get('/order-success', [$pageController, 'orderSuccess']);
+
+$router->get('/cart', [$cart, 'showCartPage']);
 $router->resolve();
 ?>

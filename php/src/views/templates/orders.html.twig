@@ -112,7 +112,7 @@
                                                 Курьерская доставка
                                             {% elseif order.delivery.code == 'self-delivery' %}
                                                 Самовывоз
-                                            {% elseif order.delivery.code == 'post' %}
+                                            {% elseif order.delivery.code == 'russian-post' %}
                                                 Почта России
                                             {% else %}
                                                 {{ order.delivery.code }}
