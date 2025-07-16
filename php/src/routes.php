@@ -52,7 +52,6 @@ $router->get('/orders', [$profile, 'showOrders']);
 $router->get('/icml', function () {
     require __DIR__ . '/../public/icml.php';
 });
-// Главная страница
 $router->get('/', function () {
     $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/views/templates');
     $twig = new \Twig\Environment($loader);
@@ -66,10 +65,8 @@ $router->get('/', function () {
     echo $twig->render('index.html.twig', ['user' => $user, 'sections' => $sections]);
 });
 
-// Корзина
 $router->get('/cart', [$cart, 'showCartPage']);
 
-// Оформление заказа
 $router->get('/checkout', function () {
     $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/views/templates');
     $twig = new \Twig\Environment($loader);
@@ -81,27 +78,23 @@ $router->get('/checkout', function () {
     $sectionsModel = new Section();
     $sections = $sectionsModel->getAll();
 
-    // Получаем корзину пользователя
     $cartItems = [];
     if (isset($_SESSION['user_id'])) {
         $cartModel = new \App\models\Cart();
         $cartItems = $cartModel->getUserCartItemList($_SESSION['user_id']);
     }
 
-    // Считаем сумму
     $cartTotal = 0;
     foreach ($cartItems as $item) {
         $cartTotal += $item['price'] * $item['quantity'];
     }
 
-    // Получаем данные пользователя из CRM
     $crmData = null;
     if ($user && isset($user['id'])) {
         $crm = new \App\Services\RetailCrmService();
         $crmData = $userModel->getCrmData($user['id'], $crm);
     }
 
-    // Получаем типы доставки и оплаты
     $crm = new \App\Services\RetailCrmService();
     $deliveryTypes = $crm->deliveryTypes();
     $paymentTypes = $crm->paymentTypes();
@@ -117,25 +110,18 @@ $router->get('/checkout', function () {
     ]);
 });
 
-// Профиль
 $router->get('/profile', [new \App\controllers\ProfileController($crm, $userModel, $auth), 'showProfile']);
 
-// История заказов
 $router->get('/profile/orders', [new \App\controllers\ProfileController($crm, $userModel, $auth), 'showOrders']);
 
-// Регистрация
 $router->get('/register', [new \App\controllers\UserController(), 'showRegisterForm']);
 
-// Логин
 $router->get('/login', [new \App\controllers\UserController(), 'showLoginForm']);
 
-// Категория (раздел)
 $router->get('/section', [new \App\controllers\SectionController(), 'showSectionPage']);
 
-// Товар (offer)
 $router->get('/offer', [new \App\controllers\OfferController(), 'showOfferPage']);
 
-// Успешное оформление заказа
 $router->get('/order-success', function () {
     $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/views/templates');
     $twig = new \Twig\Environment($loader);
@@ -150,7 +136,6 @@ $router->get('/order-success', function () {
     ]);
 });
 
-// Главная страница (ещё один вариант)
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_SERVER['REQUEST_URI'] === '/' || $_SERVER['REQUEST_URI'] === '/index.php')) {
     $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/views/templates');
     $twig = new \Twig\Environment($loader);
