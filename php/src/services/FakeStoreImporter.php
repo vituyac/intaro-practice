@@ -25,15 +25,14 @@ class FakeStoreImporter {
             $json = file_get_contents($this->categoriesUrl);
             $data = json_decode($json, true);
             $categories = $data['categories'] ?? [];
-
-            
+           
             // Проверяем наличие родительской категории Электроника
-            $stmt = $this->db->prepare("SELECT id FROM section WHERE title = ?");
+            $stmt = $this->db->prepare("SELECT id FROM sections WHERE title = ?");
             $stmt->execute(['Electronics']);
             $parent = $stmt->fetch();
 
             if (!$parent) {
-                  $stmt = $this->db->prepare("INSERT INTO section (title, parent_id) VALUES (?, NULL)");
+                  $stmt = $this->db->prepare("INSERT INTO sections (title, parent_id) VALUES (?, NULL)");
                   $stmt->execute(['Electronics']);
                   $parentId = $this->db->lastInsertId();
             } else {
@@ -42,13 +41,13 @@ class FakeStoreImporter {
 
             foreach ($categories as $categoryName) {
                   var_dump($categoryName);
-                  $stmt = $this->db->prepare("SELECT id FROM section WHERE title = ?");
+                  $stmt = $this->db->prepare("SELECT id FROM sections WHERE title = ?");
                   $stmt->execute([ucfirst($categoryName)]);
                   $existing = $stmt->fetch();
                   
                   if (!$existing) {
                   $stmt = $this->db->prepare(
-                        "INSERT INTO section (title, parent_id) VALUES (?, ?)"
+                        "INSERT INTO sections (title, parent_id) VALUES (?, ?)"
                   );
                   $stmt->execute([ucfirst($categoryName),$parentId]);
                   }
@@ -57,6 +56,8 @@ class FakeStoreImporter {
       
       
       private function importProducts() {
+            $usdToRub = $this->getUsdToRubRate();
+
             $json = file_get_contents($this->apiUrl);
             $data = json_decode($json, true);
             $products = $data['products'] ?? [];
@@ -69,7 +70,7 @@ class FakeStoreImporter {
                   $categoryTitle = ucfirst($item['category']);
 
                   //ID категории
-                  $stmt = $this->db->prepare("SELECT id FROM section WHERE title = ?");
+                  $stmt = $this->db->prepare("SELECT id FROM sections WHERE title = ?");
                   $stmt->execute([$categoryTitle]);
                   $category = $stmt->fetch();
 
@@ -80,13 +81,13 @@ class FakeStoreImporter {
                   $categoryId = $category['id'];
 
                   // наличие товара
-                  $stmt = $this->db->prepare("SELECT id FROM product WHERE brand = ? AND model = ?");
+                  $stmt = $this->db->prepare("SELECT id FROM products WHERE brand = ? AND model = ?");
                   $stmt->execute([$brand, $model]);
                   $product = $stmt->fetch();
 
                   if (!$product) {
                         $stmt = $this->db->prepare("
-                        INSERT INTO product (name, brand, model, description, category_id)
+                        INSERT INTO products (name, brand, model, description, category_id)
                         VALUES (?, ?, ?, ?, ?)
                         ");
                         $stmt->execute([$name, $brand, $model, $description, $categoryId]);
@@ -98,9 +99,10 @@ class FakeStoreImporter {
                   // торговое предложение                  
                   $isPopular = $this->normalizeBoolean($item['popular'] ?? false);
                   $isOnSale = $this->normalizeBoolean($item['onSale'] ?? false);
+                  $priceRub = round($item['price'] * $usdToRub, 2);
 
                   $stmt = $this->db->prepare("
-                        INSERT INTO offer (
+                        INSERT INTO offers (
                         product_id, title, image, price, color, discount,
                         is_popular, is_on_sale
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -110,7 +112,7 @@ class FakeStoreImporter {
                         $productId,
                         $item['title'],
                         $item['image'] ?? null,
-                        $item['price'],
+                        $priceRub,
                         $item['color'] ?? null,
                         $item['discount'] ?? 0,
                         $isPopular ? 't' : 'f', 
@@ -136,5 +138,29 @@ class FakeStoreImporter {
             }
             return false;
       }
+
+      private function getUsdToRubRate(): float {
+            $defaultRate = 78.0;
+
+            try {
+                  $json = @file_get_contents('https://www.cbr-xml-daily.ru/daily_json.js');
+
+                  if ($json === false) {
+                        throw new \Exception("Сервис недоступен");
+                  }
+
+                  $data = json_decode($json, true);
+
+                  if (!isset($data['Valute']['USD']['Value'])) {
+                        throw new \Exception("Курс USD не найден в ответе");
+                  }
+
+                  return floatval($data['Valute']['USD']['Value']);
+            } catch (\Throwable $e) {
+                  return $defaultRate;
+            }
+            }
+
 }
+
 

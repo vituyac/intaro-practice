@@ -1,0 +1,293 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{{ offer.name }} - Интернет-магазин{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Главная</a></li>
+        {% if section %}
+            <li class="breadcrumb-item"><a href="/section?id={{ section.id }}">{{ section.name }}</a></li>
+        {% endif %}
+        <li class="breadcrumb-item active" aria-current="page">{{ offer.name }}</li>
+    </ol>
+</nav>
+
+<div class="row mb-5">
+    <div class="col-md-6 mb-4">
+        {% if offer.images is defined and offer.images %}
+            <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% for image in offer.images %}
+                        <div class="carousel-item {% if loop.first %}active{% endif %}">
+                            <img src="{{ image }}" class="d-block w-100 rounded" alt="{{ offer.name }}" style="height: 400px; object-fit: cover;">
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if offer.images|length > 1 %}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                    </button>
+                {% endif %}
+            </div>
+        {% elseif offer.image %}
+            <img src="{{ offer.image }}" class="img-fluid rounded" alt="{{ offer.name }}" style="width: 100%; height: 400px; object-fit: cover;">
+        {% else %}
+            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 400px;">
+                <i class="bi bi-image text-muted" style="font-size: 5rem;"></i>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6">
+        <h1 class="mb-3">{{ product.brand }}</h1>
+        <h1 class="mb-3">{{ product.model }}</h1>
+        
+        <div class="mb-4">
+            <div class="d-flex align-items-center">
+                <span class="h2 text-primary me-3">{{ offer.price }} ₽</span>
+                {% if offer.old_price %}
+                    <span class="h5 text-muted text-decoration-line-through">{{ offer.old_price }} ₽</span>
+                    <span class="badge bg-danger ms-2">
+                        -{{ ((offer.old_price - offer.price) / offer.old_price * 100)|round }}%
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            {% if offer.quantity is defined and offer.quantity > 0 %}
+                <span class="badge bg-success fs-6">
+                    <i class="bi bi-check-circle"></i>
+                    В наличии ({{ offer.quantity }} шт.)
+                </span>
+            {% else %}
+                <span class="badge bg-warning fs-6">
+                    <i class="bi bi-clock"></i>
+                    Под заказ
+                </span>
+            {% endif %}
+        </div>
+        
+        {% if product.description %}
+            <div class="mb-4">
+                <h5>Описание</h5>
+                <p class="text-muted">{{ product.description }}</p>
+            </div>
+        {% endif %}
+        
+        {% if offer.properties is defined and offer.properties %}
+            <div class="mb-4">
+                <h5>Характеристики</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        {% for property in offer.properties %}
+                            <tr>
+                                <td class="fw-bold" style="width: 40%;">{{ property.name }}:</td>
+                                <td>{{ property.value }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if user %}
+            <div class="mb-4">
+                <div class="row g-3">
+                    <div class="col-auto">
+                        <label for="quantity" class="form-label">Количество:</label>
+                        <input type="number" class="form-control" id="quantity" value="1" min="1" max="{{ offer.quantity|default(99) }}" style="width: 80px;">
+                    </div>
+                    <div class="col-auto d-flex align-items-end">
+                        <button class="btn btn-primary btn-lg" id="addToCartBtn" data-offer-id="{{ offer.id }}">
+                            <i class="bi bi-cart-plus"></i>
+                            Добавить в корзину
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <a href="/login" class="alert-link">Войдите в систему</a>, чтобы добавить товар в корзину
+            </div>
+        {% endif %}
+        
+        <div class="mb-4">
+            <h6>Поделиться:</h6>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="shareProduct('telegram')">
+                    <i class="bi bi-telegram"></i> Telegram
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyLink()">
+                    <i class="bi bi-link-45deg"></i> Копировать ссылку
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    const quantityInput = document.getElementById('quantity');
+    
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', function() {
+            const offerId = this.dataset.offerId;
+            const quantity = parseInt(quantityInput.value) || 1;
+            const originalText = this.innerHTML;
+            
+            this.disabled = true;
+            this.innerHTML = '<i class="bi bi-hourglass-split"></i> Добавление...';
+            
+            fetch('/api/cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    offer_id: offerId,
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    this.innerHTML = '<i class="bi bi-check"></i> Добавлено в корзину';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-success');
+                    
+                    const cartBadge = document.querySelector('.cart-badge');
+                    if (cartBadge) {
+                        const currentCount = parseInt(cartBadge.textContent) || 0;
+                        cartBadge.textContent = currentCount + quantity;
+                    }
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-primary');
+                        this.disabled = false;
+                    }, 3000);
+                } else {
+                    throw new Error(data.error || data.message || 'Ошибка добавления в корзину');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Ошибка';
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-danger');
+                
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.classList.remove('btn-danger');
+                    this.classList.add('btn-primary');
+                    this.disabled = false;
+                }, 3000);
+            });
+        });
+    }
+    
+    const addToCartButtons = document.querySelectorAll('.add-to-cart');
+    
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const offerId = this.dataset.offerId;
+            const originalText = this.innerHTML;
+            
+            this.disabled = true;
+            this.innerHTML = '<i class="bi bi-hourglass-split"></i> Добавление...';
+            
+            fetch('/api/cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    offer_id: offerId,
+                    quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    this.innerHTML = '<i class="bi bi-check"></i> Добавлено';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-success');
+                    
+                    const cartBadge = document.querySelector('.cart-badge');
+                    if (cartBadge) {
+                        const currentCount = parseInt(cartBadge.textContent) || 0;
+                        cartBadge.textContent = currentCount + 1;
+                    }
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-primary');
+                        this.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || data.message || 'Ошибка добавления в корзину');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Ошибка';
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-danger');
+                
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.classList.remove('btn-danger');
+                    this.classList.add('btn-primary');
+                    this.disabled = false;
+                }, 2000);
+            });
+        });
+    });
+});
+
+function shareProduct(platform) {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(document.title);
+    
+    let shareUrl;
+    switch(platform) {
+        case 'telegram':
+            shareUrl = `https://t.me/share/url?url=${url}&text=${title}`;
+            break;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+}
+
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(function() {
+        // Show success message
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check"></i> Скопировано';
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline-secondary');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-secondary');
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}
+
